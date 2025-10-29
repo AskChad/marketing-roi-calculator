@@ -8,16 +8,17 @@ interface ResultsDisplayProps {
   results: DualTimeframeResult
   currentMetrics: BaselineMetrics
   onReset: () => void
+  initialScenarioName?: string
 }
 
-export default function ResultsDisplay({ results, currentMetrics, onReset }: ResultsDisplayProps) {
+export default function ResultsDisplay({ results, currentMetrics, onReset, initialScenarioName = '' }: ResultsDisplayProps) {
   const { weekly, monthly, inputPeriod } = results
 
   // Use the input period as primary display
   const primary = inputPeriod === 'weekly' ? weekly : monthly
   const secondary = inputPeriod === 'weekly' ? monthly : weekly
 
-  const [scenarioName, setScenarioName] = useState('')
+  const [scenarioName, setScenarioName] = useState(initialScenarioName)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -143,7 +144,6 @@ export default function ResultsDisplay({ results, currentMetrics, onReset }: Res
               <button
                 onClick={() => {
                   setShowSaveForm(false)
-                  setScenarioName('')
                   setSaveError('')
                 }}
                 disabled={isSaving}

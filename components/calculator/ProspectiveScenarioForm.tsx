@@ -52,6 +52,7 @@ export default function ProspectiveScenarioForm({
 
   const handleFormSubmit = (data: ScenarioFormData) => {
     const scenario: TargetScenario = {
+      scenarioName: data.scenarioName,
       targetType,
     }
 

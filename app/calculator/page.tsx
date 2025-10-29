@@ -12,6 +12,7 @@ export default function CalculatorPage() {
   const [currentMetrics, setCurrentMetrics] = useState<BaselineMetrics | null>(null)
   const [showScenarioForm, setShowScenarioForm] = useState(false)
   const [results, setResults] = useState<DualTimeframeResult | null>(null)
+  const [scenarioName, setScenarioName] = useState<string>('')
 
   const handleCurrentMetricsSubmit = (metrics: BaselineMetrics) => {
     setCurrentMetrics(metrics)
@@ -20,6 +21,11 @@ export default function CalculatorPage() {
 
   const handleScenarioSubmit = (scenario: TargetScenario) => {
     if (!currentMetrics) return
+
+    // Store scenario name for use in ResultsDisplay
+    if (scenario.scenarioName) {
+      setScenarioName(scenario.scenarioName)
+    }
 
     // Import calculation function dynamically to avoid client-side issues
     import('@/lib/calculations').then(({ calculateDualTimeframeROI }) => {
@@ -32,6 +38,7 @@ export default function CalculatorPage() {
     setCurrentMetrics(null)
     setShowScenarioForm(false)
     setResults(null)
+    setScenarioName('')
   }
 
   return (
@@ -119,6 +126,7 @@ export default function CalculatorPage() {
               results={results}
               currentMetrics={currentMetrics!}
               onReset={handleReset}
+              initialScenarioName={scenarioName}
             />
           )}
         </div>

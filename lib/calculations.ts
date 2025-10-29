@@ -111,6 +111,7 @@ export interface BaselineMetrics {
 }
 
 export interface TargetScenario {
+  scenarioName?: string
   targetType: 'conversionRate' | 'cpl' | 'cpa'
   targetConversionRate?: number
   targetCPL?: number
