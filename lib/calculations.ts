@@ -191,12 +191,11 @@ export function calculateDualTimeframeROI(
   const newCPA = calculateNewCPA(adSpend, newSales)
   const newRevenue = calculateNewRevenue(newSales, avgRevenuePerSale)
 
-  // Calculate comparison metrics
-  const salesIncrease = calculateSalesIncrease(newSales, baseline.sales)
-  const revenueIncrease = calculateRevenueIncrease(newRevenue, baseline.revenue)
+  // Calculate comparison metrics that are the same across timeframes
   const cpaImprovementPercent = calculateCPAImprovement(currentCPA, newCPA)
 
-  const calculatedMetrics: CalculatedMetrics = {
+  // Base calculated metrics (without salesIncrease/revenueIncrease which vary by timeframe)
+  const baseCalculatedMetrics = {
     currentConversionRate,
     currentCPL,
     currentCPA,
@@ -206,8 +205,6 @@ export function calculateDualTimeframeROI(
     newCPL,
     newCPA,
     newRevenue,
-    salesIncrease,
-    revenueIncrease,
     cpaImprovementPercent,
   }
 
@@ -229,6 +226,12 @@ export function calculateDualTimeframeROI(
     }
     const monthlyProspectiveConverted = convertWeeklyToMonthly(monthlyProspective)
 
+    // Calculate increases for each timeframe
+    const weeklySalesIncrease = calculateSalesIncrease(newSales, baseline.sales)
+    const weeklyRevenueIncrease = calculateRevenueIncrease(newRevenue, baseline.revenue)
+    const monthlySalesIncrease = calculateSalesIncrease(monthlyProspectiveConverted.sales, monthlyBaseline.sales)
+    const monthlyRevenueIncrease = calculateRevenueIncrease(monthlyProspectiveConverted.revenue, monthlyBaseline.revenue)
+
     return {
       inputPeriod: 'weekly',
       weekly: {
@@ -242,7 +245,9 @@ export function calculateDualTimeframeROI(
           sales: newSales,
           adSpend,
           revenue: newRevenue,
-          ...calculatedMetrics,
+          ...baseCalculatedMetrics,
+          salesIncrease: weeklySalesIncrease,
+          revenueIncrease: weeklyRevenueIncrease,
         },
       },
       monthly: {
@@ -254,7 +259,9 @@ export function calculateDualTimeframeROI(
         prospective: {
           ...monthlyProspectiveConverted,
           timePeriod: 'monthly' as const,
-          ...calculatedMetrics,
+          ...baseCalculatedMetrics,
+          salesIncrease: monthlySalesIncrease,
+          revenueIncrease: monthlyRevenueIncrease,
         },
       },
     }
@@ -269,6 +276,12 @@ export function calculateDualTimeframeROI(
     }
     const weeklyProspectiveConverted = convertMonthlyToWeekly(weeklyProspective)
 
+    // Calculate increases for each timeframe
+    const weeklySalesIncrease = calculateSalesIncrease(weeklyProspectiveConverted.sales, weeklyBaseline.sales)
+    const weeklyRevenueIncrease = calculateRevenueIncrease(weeklyProspectiveConverted.revenue, weeklyBaseline.revenue)
+    const monthlySalesIncrease = calculateSalesIncrease(newSales, baseline.sales)
+    const monthlyRevenueIncrease = calculateRevenueIncrease(newRevenue, baseline.revenue)
+
     return {
       inputPeriod: 'monthly',
       weekly: {
@@ -280,7 +293,9 @@ export function calculateDualTimeframeROI(
         prospective: {
           ...weeklyProspectiveConverted,
           timePeriod: 'weekly' as const,
-          ...calculatedMetrics,
+          ...baseCalculatedMetrics,
+          salesIncrease: weeklySalesIncrease,
+          revenueIncrease: weeklyRevenueIncrease,
         },
       },
       monthly: {
@@ -294,7 +309,9 @@ export function calculateDualTimeframeROI(
           sales: newSales,
           adSpend,
           revenue: newRevenue,
-          ...calculatedMetrics,
+          ...baseCalculatedMetrics,
+          salesIncrease: monthlySalesIncrease,
+          revenueIncrease: monthlyRevenueIncrease,
         },
       },
     }
