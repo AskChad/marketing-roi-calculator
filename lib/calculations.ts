@@ -111,7 +111,10 @@ export interface BaselineMetrics {
 }
 
 export interface TargetScenario {
-  targetConversionRate: number
+  targetType: 'conversionRate' | 'cpl' | 'cpa'
+  targetConversionRate?: number
+  targetCPL?: number
+  targetCPA?: number
   adjustedLeads?: number
   adjustedAdSpend?: number
 }
@@ -153,8 +156,8 @@ export function calculateDualTimeframeROI(
   target: TargetScenario
 ): DualTimeframeResult {
   // Determine leads and ad spend (use adjusted values if provided)
-  const leads = target.adjustedLeads ?? baseline.leads
-  const adSpend = target.adjustedAdSpend ?? baseline.adSpend
+  let leads = target.adjustedLeads ?? baseline.leads
+  let adSpend = target.adjustedAdSpend ?? baseline.adSpend
 
   // Calculate current metrics
   const currentConversionRate = calculateCurrentConversionRate(baseline.sales, baseline.leads)
@@ -162,8 +165,28 @@ export function calculateDualTimeframeROI(
   const currentCPA = calculateCurrentCPA(baseline.adSpend, baseline.sales)
   const avgRevenuePerSale = calculateAvgRevenuePerSale(baseline.revenue, baseline.sales)
 
+  // Determine target conversion rate based on target type
+  let targetConversionRate: number
+
+  if (target.targetType === 'conversionRate') {
+    // User specified conversion rate directly
+    targetConversionRate = target.targetConversionRate!
+  } else if (target.targetType === 'cpl') {
+    // User specified target CPL - adjust ad spend to achieve it
+    // CPL = adSpend / leads, so adSpend = CPL * leads
+    adSpend = target.targetCPL! * leads
+    // Keep the same conversion rate as current
+    targetConversionRate = currentConversionRate
+  } else {
+    // target.targetType === 'cpa'
+    // User specified target CPA - calculate required conversion rate
+    // CPA = adSpend / sales = adSpend / (leads * CR / 100)
+    // So: CR = (adSpend / targetCPA) / leads * 100
+    targetConversionRate = (adSpend / (target.targetCPA! * leads)) * 100
+  }
+
   // Calculate prospective metrics
-  const newSales = calculateNewSales(leads, target.targetConversionRate)
+  const newSales = calculateNewSales(leads, targetConversionRate)
   const newCPL = calculateNewCPL(adSpend, leads)
   const newCPA = calculateNewCPA(adSpend, newSales)
   const newRevenue = calculateNewRevenue(newSales, avgRevenuePerSale)
@@ -178,7 +201,7 @@ export function calculateDualTimeframeROI(
     currentCPL,
     currentCPA,
     avgRevenuePerSale,
-    targetConversionRate: target.targetConversionRate,
+    targetConversionRate,
     newSales,
     newCPL,
     newCPA,
