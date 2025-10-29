@@ -186,6 +186,13 @@ export function calculateDualTimeframeROI(
     cpaImprovementPercent,
   }
 
+  // Current metrics only (for display in "Current" column)
+  const currentMetricsOnly = {
+    currentConversionRate,
+    currentCPL,
+    currentCPA,
+  }
+
   // Convert to both timeframes
   if (baseline.timePeriod === 'weekly') {
     const monthlyBaseline = convertWeeklyToMonthly(baseline)
@@ -200,7 +207,10 @@ export function calculateDualTimeframeROI(
     return {
       inputPeriod: 'weekly',
       weekly: {
-        current: baseline,
+        current: {
+          ...baseline,
+          ...currentMetricsOnly,
+        },
         prospective: {
           ...baseline,
           leads,
@@ -214,6 +224,7 @@ export function calculateDualTimeframeROI(
         current: {
           ...monthlyBaseline,
           timePeriod: 'monthly' as const,
+          ...currentMetricsOnly,
         },
         prospective: {
           ...monthlyProspectiveConverted,
@@ -239,6 +250,7 @@ export function calculateDualTimeframeROI(
         current: {
           ...weeklyBaseline,
           timePeriod: 'weekly' as const,
+          ...currentMetricsOnly,
         },
         prospective: {
           ...weeklyProspectiveConverted,
@@ -247,7 +259,10 @@ export function calculateDualTimeframeROI(
         },
       },
       monthly: {
-        current: baseline,
+        current: {
+          ...baseline,
+          ...currentMetricsOnly,
+        },
         prospective: {
           ...baseline,
           leads,

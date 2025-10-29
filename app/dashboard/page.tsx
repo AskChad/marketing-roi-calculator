@@ -32,6 +32,7 @@ export default async function DashboardPage() {
         showLogin={false}
         showDashboard={false}
         userName={(userData as any)?.first_name || user.email?.split('@')[0] || 'User'}
+        isAdmin={(userData as any)?.is_admin || false}
       />
 
       <main className="min-h-screen bg-gradient-to-br from-neutral-50 to-white py-12">

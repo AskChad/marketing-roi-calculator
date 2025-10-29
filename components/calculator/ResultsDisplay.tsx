@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { BaselineMetrics, DualTimeframeResult, formatCurrency, formatPercent, formatNumber } from '@/lib/calculations'
-import { ArrowUp, ArrowDown, TrendingUp, DollarSign, Target, RefreshCw } from 'lucide-react'
+import { ArrowUp, ArrowDown, TrendingUp, DollarSign, Target, RefreshCw, Save } from 'lucide-react'
 
 interface ResultsDisplayProps {
   results: DualTimeframeResult
@@ -16,9 +17,64 @@ export default function ResultsDisplay({ results, currentMetrics, onReset }: Res
   const primary = inputPeriod === 'weekly' ? weekly : monthly
   const secondary = inputPeriod === 'weekly' ? monthly : weekly
 
+  const [scenarioName, setScenarioName] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [showSaveForm, setShowSaveForm] = useState(false)
+
+  const handleSaveScenario = async () => {
+    if (!scenarioName.trim()) {
+      setSaveError('Please enter a scenario name')
+      return
+    }
+
+    setIsSaving(true)
+    setSaveError('')
+
+    try {
+      const response = await fetch('/api/scenarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scenarioName: scenarioName.trim(),
+          targetConversionRate: primary.prospective.currentConversionRate,
+          adjustedLeads: primary.prospective.leads !== currentMetrics.leads ? primary.prospective.leads : null,
+          adjustedAdSpend: primary.prospective.adSpend !== currentMetrics.adSpend ? primary.prospective.adSpend : null,
+          newSales: primary.prospective.newSales,
+          newCPL: primary.prospective.newCPL,
+          newCPA: primary.prospective.newCPA,
+          newRevenue: primary.prospective.newRevenue,
+          salesIncrease: primary.prospective.salesIncrease,
+          revenueIncrease: primary.prospective.revenueIncrease,
+          cpaImprovementPercent: primary.prospective.cpaImprovementPercent,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save scenario')
+      }
+
+      setSaveSuccess(true)
+      setShowSaveForm(false)
+      setScenarioName('')
+
+      // Reset success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (error: any) {
+      console.error('Error saving scenario:', error)
+      setSaveError(error.message || 'Failed to save scenario')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Header with Reset Button */}
+      {/* Header with Action Buttons */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold text-neutral-900 mb-2">Your ROI Analysis</h2>
@@ -26,14 +82,86 @@ export default function ResultsDisplay({ results, currentMetrics, onReset }: Res
             Results shown in both weekly and monthly timeframes
           </p>
         </div>
-        <button
-          onClick={onReset}
-          className="flex items-center px-4 py-2 text-brand-primary border border-brand-primary rounded-lg hover:bg-brand-primary hover:text-white transition"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          New Calculation
-        </button>
+        <div className="flex items-center space-x-3">
+          {saveSuccess && (
+            <div className="px-4 py-2 bg-success-light text-success-dark rounded-lg font-medium">
+              ✓ Saved!
+            </div>
+          )}
+          <button
+            onClick={() => setShowSaveForm(true)}
+            className="flex items-center px-4 py-2 bg-success text-white rounded-lg hover:bg-success-dark transition font-medium"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save Scenario
+          </button>
+          <button
+            onClick={onReset}
+            className="flex items-center px-4 py-2 text-brand-primary border border-brand-primary rounded-lg hover:bg-brand-primary hover:text-white transition"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            New Calculation
+          </button>
+        </div>
       </div>
+
+      {/* Save Scenario Modal */}
+      {showSaveForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h3 className="text-2xl font-bold text-neutral-900 mb-4">Save Scenario</h3>
+            <p className="text-neutral-600 mb-6">
+              Give your scenario a name to save it for later reference
+            </p>
+
+            <div className="mb-6">
+              <label htmlFor="scenarioName" className="block text-sm font-medium text-neutral-700 mb-2">
+                Scenario Name
+              </label>
+              <input
+                type="text"
+                id="scenarioName"
+                value={scenarioName}
+                onChange={(e) => setScenarioName(e.target.value)}
+                placeholder="e.g., Q1 2025 Growth Plan"
+                className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                disabled={isSaving}
+              />
+              {saveError && (
+                <p className="mt-2 text-sm text-red-600">{saveError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleSaveScenario}
+                disabled={isSaving}
+                className="flex-1 px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowSaveForm(false)
+                  setScenarioName('')
+                  setSaveError('')
+                }}
+                disabled={isSaving}
+                className="flex-1 px-6 py-3 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <p className="mt-4 text-xs text-neutral-500 text-center">
+              You must be logged in to save scenarios.{' '}
+              <a href="/login" className="text-brand-primary hover:underline">
+                Login here
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Key Insights Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

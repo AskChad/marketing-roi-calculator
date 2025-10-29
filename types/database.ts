@@ -50,8 +50,8 @@ export interface CalculatorSession {
 
 export interface ROIScenario {
   id: string
-  session_id: string
-  user_id: string | null
+  session_id: string | null
+  user_id: string
 
   scenario_name: string
   target_conversion_rate: number

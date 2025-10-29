@@ -1,15 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp, Settings } from 'lucide-react'
 
 interface HeaderProps {
   showLogin?: boolean
   showDashboard?: boolean
   userName?: string
+  isAdmin?: boolean
 }
 
-export default function Header({ showLogin = true, showDashboard = false, userName }: HeaderProps) {
+export default function Header({ showLogin = true, showDashboard = false, userName, isAdmin = false }: HeaderProps) {
   return (
     <header className="bg-white border-b border-neutral-200">
       <div className="container mx-auto px-4 py-4">
@@ -30,6 +31,16 @@ export default function Header({ showLogin = true, showDashboard = false, userNa
                 className="text-neutral-600 hover:text-brand-primary transition"
               >
                 Dashboard
+              </Link>
+            )}
+
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="flex items-center text-neutral-600 hover:text-brand-primary transition"
+              >
+                <Settings className="mr-1 h-4 w-4" />
+                Admin
               </Link>
             )}
 

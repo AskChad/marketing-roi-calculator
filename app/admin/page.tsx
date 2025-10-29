@@ -46,6 +46,7 @@ export default async function AdminPage() {
         showLogin={false}
         showDashboard={true}
         userName="Admin"
+        isAdmin={true}
       />
 
       <main className="min-h-screen bg-gradient-to-br from-neutral-50 to-white py-12">
