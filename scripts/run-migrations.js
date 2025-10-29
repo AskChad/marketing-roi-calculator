@@ -6,8 +6,14 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const SUPABASE_PROJECT_ID = 'ohmioijbzvhoydyhdkdk';
-const SUPABASE_ACCESS_TOKEN = 'sbp_c4e5823876bec847496de53a8194218a68d6f896';
+const SUPABASE_PROJECT_ID = process.env.SUPABASE_PROJECT_ID || 'ohmioijbzvhoydyhdkdk';
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+
+if (!SUPABASE_ACCESS_TOKEN) {
+  console.error('❌ Error: Missing SUPABASE_ACCESS_TOKEN environment variable');
+  console.error('   Get your access token from: https://supabase.com/dashboard/account/tokens');
+  process.exit(1);
+}
 
 async function executeSQL(sql) {
   return new Promise((resolve, reject) => {

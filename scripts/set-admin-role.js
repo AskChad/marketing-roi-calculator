@@ -5,11 +5,17 @@
 
 const https = require('https');
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ferlaleutrxxsjpjwrcn.supabase.co';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlcmxhbGV1dHJ4eHNqcGp3cmNuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTI3ODkyNCwiZXhwIjoyMDc2ODU0OTI0fQ.bTDb6pjmTC6LxPhuKy6WJND4FTIT8VVzaOEyZFswo7Y';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error('❌ Error: Missing required environment variables');
+  console.error('   Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
 
 const ADMIN_EMAIL = 'chad@askchad.net';
-const USER_ID = 'da7d5a1a-67c2-4473-829c-8f9d0f177bb9'; // From previous creation
+const USER_ID = process.env.ADMIN_USER_ID || 'c89eebc1-acd1-422e-a858-80af4afdd76e';
 
 async function makeRequest(method, path, data = null) {
   return new Promise((resolve, reject) => {
