@@ -9,9 +9,10 @@ interface ResultsDisplayProps {
   currentMetrics: BaselineMetrics
   onReset: () => void
   initialScenarioName?: string
+  onScenarioSaved?: () => void
 }
 
-export default function ResultsDisplay({ results, currentMetrics, onReset, initialScenarioName = '' }: ResultsDisplayProps) {
+export default function ResultsDisplay({ results, currentMetrics, onReset, initialScenarioName = '', onScenarioSaved }: ResultsDisplayProps) {
   const { weekly, monthly, inputPeriod } = results
 
   // Use the input period as primary display
@@ -41,9 +42,13 @@ export default function ResultsDisplay({ results, currentMetrics, onReset, initi
         },
         body: JSON.stringify({
           scenarioName: scenarioName.trim(),
+          // Baseline metrics
+          baselineMetrics: currentMetrics,
+          // Target scenario data
           targetConversionRate: primary.prospective.targetConversionRate,
           adjustedLeads: primary.prospective.leads !== currentMetrics.leads ? primary.prospective.leads : null,
           adjustedAdSpend: primary.prospective.adSpend !== currentMetrics.adSpend ? primary.prospective.adSpend : null,
+          // Calculated results
           newSales: primary.prospective.newSales,
           newCPL: primary.prospective.newCPL,
           newCPA: primary.prospective.newCPA,

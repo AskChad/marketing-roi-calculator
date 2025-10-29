@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       scenarioName,
-      sessionId,
+      baselineMetrics,
       targetConversionRate,
       adjustedLeads,
       adjustedAdSpend,
@@ -32,17 +32,45 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!scenarioName || !targetConversionRate || newSales === undefined) {
+    if (!scenarioName || !targetConversionRate || newSales === undefined || !baselineMetrics) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    // Prepare the scenario data with proper types
+    // First, create a calculator session to store baseline metrics
+    const sessionData = {
+      user_id: user.id,
+      time_period: baselineMetrics.timePeriod,
+      current_leads: Number(baselineMetrics.leads),
+      current_sales: Number(baselineMetrics.sales),
+      current_ad_spend: Number(baselineMetrics.adSpend),
+      current_revenue: Number(baselineMetrics.revenue),
+      current_conversion_rate: (baselineMetrics.sales / baselineMetrics.leads) * 100,
+      current_cpl: baselineMetrics.adSpend / baselineMetrics.leads,
+      current_cpa: baselineMetrics.adSpend / baselineMetrics.sales,
+      avg_revenue_per_sale: baselineMetrics.revenue / baselineMetrics.sales,
+    }
+
+    const { data: session, error: sessionError } = await (supabase
+      .from('calculator_sessions') as any)
+      .insert(sessionData)
+      .select()
+      .single()
+
+    if (sessionError) {
+      console.error('Error creating calculator session:', sessionError)
+      return NextResponse.json(
+        { error: 'Failed to create session', details: sessionError.message },
+        { status: 500 }
+      )
+    }
+
+    // Now create the scenario with reference to the session
     const scenarioData = {
       user_id: user.id,
-      session_id: (sessionId || null) as string | null,
+      session_id: session.id,
       scenario_name: scenarioName as string,
       target_conversion_rate: Number(targetConversionRate),
       adjusted_leads: adjustedLeads ? Number(adjustedLeads) : null,
@@ -57,9 +85,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the scenario
-    const { data: scenario, error: insertError } = await supabase
-      .from('roi_scenarios')
-      // @ts-expect-error - Supabase types are not properly inferred for insert
+    const { data: scenario, error: insertError } = await (supabase
+      .from('roi_scenarios') as any)
       .insert(scenarioData)
       .select()
       .single()
@@ -127,7 +154,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ scenarios }, { status: 200 })
+    return NextResponse.json({ scenarios, isAdmin }, { status: 200 })
 
   } catch (error: any) {
     console.error('Error in GET /api/scenarios:', error)
