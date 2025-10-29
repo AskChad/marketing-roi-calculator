@@ -1,0 +1,34 @@
+{
+  "name": "marketing_roi_calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A professional Marketing ROI Calculator with AI-powered insights and platform-by-platform breakdown analysis",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@supabase/supabase-js": "^2.76.1",
+    "@types/node": "^24.9.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "autoprefixer": "^10.4.21",
+    "lucide-react": "^0.548.0",
+    "next": "^16.0.1",
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.65.0",
+    "recharts": "^3.3.0",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.9.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^16.0.1"
+  }
+}
