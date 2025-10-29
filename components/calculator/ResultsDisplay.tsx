@@ -40,7 +40,7 @@ export default function ResultsDisplay({ results, currentMetrics, onReset }: Res
         },
         body: JSON.stringify({
           scenarioName: scenarioName.trim(),
-          targetConversionRate: primary.prospective.currentConversionRate,
+          targetConversionRate: primary.prospective.targetConversionRate,
           adjustedLeads: primary.prospective.leads !== currentMetrics.leads ? primary.prospective.leads : null,
           adjustedAdSpend: primary.prospective.adSpend !== currentMetrics.adSpend ? primary.prospective.adSpend : null,
           newSales: primary.prospective.newSales,

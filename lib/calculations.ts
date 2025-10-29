@@ -124,6 +124,7 @@ export interface CalculatedMetrics {
   avgRevenuePerSale: number
 
   // Prospective metrics
+  targetConversionRate: number
   newSales: number
   newCPL: number
   newCPA: number
@@ -177,6 +178,7 @@ export function calculateDualTimeframeROI(
     currentCPL,
     currentCPA,
     avgRevenuePerSale,
+    targetConversionRate: target.targetConversionRate,
     newSales,
     newCPL,
     newCPA,
