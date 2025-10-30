@@ -232,17 +232,134 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
         </ul>
       </div>
 
-      {/* Setup Instructions */}
+      {/* OAuth Configuration Info */}
       {!isConnected && (
-        <div className="p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-lg">
-          <h4 className="font-semibold text-brand-primary mb-2">Setup Instructions</h4>
-          <ol className="space-y-2 text-sm text-neutral-700">
-            <li>1. Make sure you have a GoHighLevel account with admin access</li>
-            <li>2. Click "Connect with GoHighLevel" above</li>
-            <li>3. Select the location you want to integrate with</li>
-            <li>4. Authorize the connection</li>
-            <li>5. You'll be redirected back here once connected</li>
-          </ol>
+        <div className="mt-8 pt-8 border-t border-neutral-200">
+          <h4 className="font-semibold text-neutral-900 mb-4 text-lg">OAuth App Configuration</h4>
+          <p className="text-sm text-neutral-600 mb-6">
+            Before connecting, you need to create an OAuth app in GoHighLevel and configure your environment variables.
+          </p>
+
+          {/* Environment Variables */}
+          <div className="mb-6">
+            <h5 className="font-semibold text-neutral-900 mb-3">Required Environment Variables</h5>
+            <div className="space-y-3">
+              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">GHL_CLIENT_ID</p>
+                <p className="font-mono text-sm text-neutral-900 mb-1">Your GoHighLevel App Client ID</p>
+                <p className="text-xs text-neutral-500">Get this from your GHL OAuth app settings</p>
+              </div>
+
+              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">GHL_CLIENT_SECRET</p>
+                <p className="font-mono text-sm text-neutral-900 mb-1">Your GoHighLevel App Client Secret</p>
+                <p className="text-xs text-neutral-500">Get this from your GHL OAuth app settings</p>
+              </div>
+
+              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">GHL_REDIRECT_URI (Optional)</p>
+                <p className="font-mono text-sm text-neutral-900 mb-1">
+                  {typeof window !== 'undefined' ? `${window.location.origin}/api/admin/ghl/callback` : '[YOUR_DOMAIN]/api/admin/ghl/callback'}
+                </p>
+                <p className="text-xs text-neutral-500">Defaults to NEXT_PUBLIC_APP_URL + /api/admin/ghl/callback</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Callback URL */}
+          <div className="mb-6 p-4 bg-success-light/10 border-2 border-success rounded-lg">
+            <h5 className="font-semibold text-neutral-900 mb-2 flex items-center">
+              <CheckCircle className="h-5 w-5 text-success mr-2" />
+              OAuth Redirect URI
+            </h5>
+            <p className="text-sm text-neutral-600 mb-3">
+              Use this exact URL when creating your GHL OAuth app:
+            </p>
+            <div className="p-3 bg-white border border-neutral-300 rounded font-mono text-sm text-neutral-900 break-all">
+              {typeof window !== 'undefined' ? `${window.location.origin}/api/admin/ghl/callback` : '[YOUR_DOMAIN]/api/admin/ghl/callback'}
+            </div>
+          </div>
+
+          {/* Required Scopes */}
+          <div className="mb-6">
+            <h5 className="font-semibold text-neutral-900 mb-3">Required OAuth Scopes</h5>
+            <p className="text-sm text-neutral-600 mb-3">
+              When creating your GHL OAuth app, request these scopes:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                contacts.readonly
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                contacts.write
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                opportunities.readonly
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                opportunities.write
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                locations/customFields.readonly
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                locations/customFields.write
+              </div>
+            </div>
+          </div>
+
+          {/* Setup Instructions */}
+          <div className="p-4 bg-brand-primary/5 border border-brand-primary/20 rounded-lg">
+            <h5 className="font-semibold text-brand-primary mb-3">Complete Setup Steps</h5>
+            <ol className="space-y-3 text-sm text-neutral-700">
+              <li className="flex items-start">
+                <span className="font-bold mr-2 text-brand-primary">1.</span>
+                <div>
+                  <strong>Create GHL OAuth App:</strong>
+                  <ul className="ml-4 mt-1 space-y-1 text-xs">
+                    <li>• Go to your GoHighLevel agency settings</li>
+                    <li>• Navigate to OAuth Apps or Marketplace</li>
+                    <li>• Create a new app (Marketplace or Private)</li>
+                  </ul>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="font-bold mr-2 text-brand-primary">2.</span>
+                <div>
+                  <strong>Configure OAuth App:</strong>
+                  <ul className="ml-4 mt-1 space-y-1 text-xs">
+                    <li>• Set the Redirect URI to the URL shown above</li>
+                    <li>• Request all the scopes listed above</li>
+                    <li>• Save and note your Client ID and Secret</li>
+                  </ul>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="font-bold mr-2 text-brand-primary">3.</span>
+                <div>
+                  <strong>Set Environment Variables:</strong>
+                  <ul className="ml-4 mt-1 space-y-1 text-xs">
+                    <li>• Add GHL_CLIENT_ID to your .env.local file</li>
+                    <li>• Add GHL_CLIENT_SECRET to your .env.local file</li>
+                    <li>• Add these to Vercel environment variables if deployed</li>
+                    <li>• Restart your development server or redeploy</li>
+                  </ul>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <span className="font-bold mr-2 text-brand-primary">4.</span>
+                <div>
+                  <strong>Connect Your Account:</strong>
+                  <ul className="ml-4 mt-1 space-y-1 text-xs">
+                    <li>• Click "Connect with GoHighLevel" button above</li>
+                    <li>• Select your GHL location</li>
+                    <li>• Authorize the connection</li>
+                    <li>• You'll be redirected back here once connected</li>
+                  </ul>
+                </div>
+              </li>
+            </ol>
+          </div>
         </div>
       )}
     </div>
