@@ -28,8 +28,15 @@ interface LeadCapture {
   phone: string | null
 }
 
+interface UserData {
+  id: string
+  email: string
+  phone: string | null
+}
+
 interface VisitWithLead extends CalculatorVisit {
   lead_captures: LeadCapture | null
+  user_data: UserData | null
 }
 
 export default async function AdminPage() {
@@ -81,12 +88,19 @@ export default async function AdminPage() {
     .from('lead_captures')
     .select('tracking_id, email, first_name, last_name, company_name, phone')
 
-  // Manually join visits with leads based on tracking_id
+  // Fetch all users to match with visits (for logged-in users)
+  const { data: usersData } = await supabase
+    .from('users')
+    .select('id, email, phone')
+
+  // Manually join visits with leads and users
   const calculatorVisits: VisitWithLead[] = (visitsData as CalculatorVisit[] || []).map(visit => {
     const lead = (leadsData as LeadCapture[] || []).find(l => l.tracking_id === visit.tracking_id)
+    const user = (usersData as UserData[] || []).find(u => u.id === visit.user_id)
     return {
       ...visit,
-      lead_captures: lead || null
+      lead_captures: lead || null,
+      user_data: user || null
     }
   })
 

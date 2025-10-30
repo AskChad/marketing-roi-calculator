@@ -273,15 +273,41 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             <table className="w-full">
               <thead>
                 <tr className="border-b border-neutral-200">
+                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Lead Info</th>
                   <th className="text-left text-sm font-semibold text-neutral-600 pb-3">IP Address</th>
                   <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Location</th>
                   <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Visited At</th>
-                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">User Agent</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
                 {calculatorVisits.map((visit) => (
                   <tr key={visit.id} className="hover:bg-neutral-50">
+                    <td className="py-3 text-sm">
+                      {visit.lead_captures ? (
+                        <div>
+                          <div className="font-medium text-neutral-900">
+                            {visit.lead_captures.first_name} {visit.lead_captures.last_name}
+                          </div>
+                          <div className="text-neutral-600">{visit.lead_captures.email}</div>
+                          {visit.lead_captures.company_name && (
+                            <div className="text-neutral-500 text-xs">{visit.lead_captures.company_name}</div>
+                          )}
+                          {visit.lead_captures.phone && (
+                            <div className="text-neutral-500 text-xs">{visit.lead_captures.phone}</div>
+                          )}
+                        </div>
+                      ) : visit.user_data ? (
+                        <div>
+                          <div className="font-medium text-neutral-900">{visit.user_data.email}</div>
+                          {visit.user_data.phone && (
+                            <div className="text-neutral-500 text-xs">{visit.user_data.phone}</div>
+                          )}
+                          <div className="text-xs text-blue-600 mt-1">Registered User</div>
+                        </div>
+                      ) : (
+                        <span className="text-neutral-400">No data</span>
+                      )}
+                    </td>
                     <td className="py-3 text-sm text-neutral-900 font-mono">{visit.ip_address || 'N/A'}</td>
                     <td className="py-3 text-sm text-neutral-600">
                       {visit.city && visit.region && visit.country ? (
@@ -294,9 +320,6 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                     </td>
                     <td className="py-3 text-sm text-neutral-600">
                       {new Date(visit.visited_at).toLocaleString()}
-                    </td>
-                    <td className="py-3 text-sm text-neutral-500 max-w-xs truncate" title={visit.user_agent}>
-                      {visit.user_agent || 'N/A'}
                     </td>
                   </tr>
                 ))}
