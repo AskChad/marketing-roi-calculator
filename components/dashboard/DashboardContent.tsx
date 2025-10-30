@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { TrendingUp, Plus, MessageSquare, BarChart3, Calendar } from 'lucide-react'
+import { TrendingUp, Plus, MessageSquare, BarChart3, Calendar, Calculator } from 'lucide-react'
 import AIChat from '@/components/ai/AIChat'
+import ROICalculator from '@/components/calculator/ROICalculator'
 
 interface DashboardContentProps {
   scenarios: any[]
@@ -13,6 +14,14 @@ interface DashboardContentProps {
 
 export default function DashboardContent({ scenarios, userId, isAdmin }: DashboardContentProps) {
   const [showChat, setShowChat] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleScenarioSaved = () => {
+    // Trigger a refresh by incrementing the key
+    setRefreshKey(prev => prev + 1)
+    // Force page reload to refresh scenarios from server
+    window.location.reload()
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -49,17 +58,22 @@ export default function DashboardContent({ scenarios, userId, isAdmin }: Dashboa
           </div>
         </div>
 
+        {/* ROI Calculator */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+          <div className="flex items-center mb-6">
+            <Calculator className="h-6 w-6 text-brand-primary mr-3" />
+            <h2 className="text-2xl font-bold text-neutral-900">ROI Calculator</h2>
+          </div>
+          <p className="text-neutral-600 mb-8">
+            Calculate your current marketing performance and model prospective scenarios
+          </p>
+          <ROICalculator userId={userId} onScenarioSaved={handleScenarioSaved} />
+        </div>
+
         {/* Saved Scenarios */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-neutral-900">My Scenarios</h2>
-            <Link
-              href="/calculator"
-              className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New Scenario
-            </Link>
           </div>
 
           {scenarios.length === 0 ? (
@@ -68,16 +82,9 @@ export default function DashboardContent({ scenarios, userId, isAdmin }: Dashboa
               <h3 className="text-xl font-semibold text-neutral-900 mb-2">
                 No scenarios yet
               </h3>
-              <p className="text-neutral-600 mb-6">
-                Create your first ROI scenario to start tracking performance
+              <p className="text-neutral-600">
+                Use the calculator above to create your first ROI scenario
               </p>
-              <Link
-                href="/calculator"
-                className="inline-flex items-center px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium"
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                Create First Scenario
-              </Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -129,17 +136,19 @@ export default function DashboardContent({ scenarios, userId, isAdmin }: Dashboa
           <h3 className="font-semibold text-neutral-900 mb-4">Quick Links</h3>
           <ul className="space-y-3">
             <li>
-              <Link href="/calculator" className="text-brand-primary hover:underline flex items-center">
-                <Plus className="mr-2 h-4 w-4" />
-                New Calculator
-              </Link>
-            </li>
-            <li>
               <Link href="/dashboard/platforms" className="text-brand-primary hover:underline flex items-center">
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Platform Comparison
               </Link>
             </li>
+            {isAdmin && (
+              <li>
+                <Link href="/admin" className="text-brand-primary hover:underline flex items-center">
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Admin Panel
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>
