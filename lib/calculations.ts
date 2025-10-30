@@ -68,7 +68,7 @@ export function calculateSalesIncrease(newSales: number, currentSales: number): 
 // Dual Timeframe Conversion
 // =====================================================
 
-const WEEKS_PER_MONTH = 4.345 // 365.25 days ÷ 12 months ÷ 7 days
+const WEEKS_PER_MONTH = 4 // Simple 4:1 ratio for weekly/monthly conversion
 
 export function convertWeeklyToMonthly(weeklyMetrics: {
   leads: number
