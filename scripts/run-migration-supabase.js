@@ -1,8 +1,33 @@
 // Run tracking_id migration using Supabase client
 const { createClient } = require('@supabase/supabase-js')
+const fs = require('fs')
+const path = require('path')
 
-const supabaseUrl = 'https://ohmioijbzvhoydyhdkdk.supabase.co'
-const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9obWlvaWpienZob3lkeWhka2RrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTc2MTk5NiwiZXhwIjoyMDc3MTIxOTk2fQ.tb9381pAgmz8jHSqvtDqHaRQDNhFPOmQsga7iY1m1j0'
+// Read .env.local file manually
+const envPath = path.join(__dirname, '../.env.local')
+const envContent = fs.readFileSync(envPath, 'utf8')
+const envVars = {}
+
+envContent.split('\n').forEach(line => {
+  const match = line.match(/^([^=]+)=(.*)$/)
+  if (match) {
+    const key = match[1].trim()
+    let value = match[2].trim()
+    // Remove quotes if present
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1)
+    }
+    envVars[key] = value
+  }
+})
+
+const supabaseUrl = envVars.NEXT_PUBLIC_SUPABASE_URL
+const serviceRoleKey = envVars.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error('Missing Supabase credentials in .env.local')
+  process.exit(1)
+}
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
@@ -108,7 +133,7 @@ async function runMigration() {
   } catch (error) {
     console.error('\n❌ Migration verification failed')
     console.log('\nPlease run the SQL manually in Supabase Dashboard:')
-    console.log('1. Go to https://supabase.com/dashboard/project/ohmioijbzvhoydyhdkdk')
+    console.log(`1. Go to ${supabaseUrl.replace('.supabase.co', '')}/dashboard`)
     console.log('2. Click SQL Editor')
     console.log('3. Run this SQL:\n')
     console.log('ALTER TABLE lead_captures ADD COLUMN IF NOT EXISTS tracking_id UUID;')
