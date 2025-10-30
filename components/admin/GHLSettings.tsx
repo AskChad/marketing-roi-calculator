@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Loader2, CheckCircle, XCircle, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react'
+import GHLFieldMapping from './GHLFieldMapping'
 
 interface GHLSettingsProps {
   initialSettings: any[]
@@ -187,6 +188,15 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
         )}
       </div>
 
+      {/* Field Mapping and Notes Configuration */}
+      <div className="mt-8 pt-8 border-t border-neutral-200">
+        <h4 className="font-semibold text-neutral-900 mb-4 text-lg">Field Mapping & Notes</h4>
+        <p className="text-sm text-neutral-600 mb-6">
+          Configure how ROI calculator data is synced to your GoHighLevel account
+        </p>
+        <GHLFieldMapping isConnected={isConnected} />
+      </div>
+
       {/* OAuth Information */}
       <div className="mt-8 pt-8 border-t border-neutral-200">
         <h4 className="font-semibold text-neutral-900 mb-3 flex items-center">
@@ -220,46 +230,6 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
           <li>• <strong>Opportunities:</strong> Read and write opportunities</li>
           <li>• <strong>Custom Fields:</strong> Read and write custom field values</li>
         </ul>
-      </div>
-
-      {/* Field Mapping Info */}
-      <div className="mt-8 pt-8 border-t border-neutral-200">
-        <h4 className="font-semibold text-neutral-900 mb-3">Synced Data Fields</h4>
-        <p className="text-sm text-neutral-600 mb-4">
-          When a lead is captured, the following data is automatically synced to GHL:
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">Contact Information</p>
-            <ul className="space-y-1 text-sm text-neutral-700">
-              <li>• First Name, Last Name</li>
-              <li>• Email, Phone</li>
-              <li>• Company Name</li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">Current Metrics</p>
-            <ul className="space-y-1 text-sm text-neutral-700">
-              <li>• Leads, Sales, Ad Spend</li>
-              <li>• Revenue, CR, CPL, CPA</li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">Prospective Metrics</p>
-            <ul className="space-y-1 text-sm text-neutral-700">
-              <li>• Scenario Name, Target CR</li>
-              <li>• New Sales, New Revenue</li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">Comparison</p>
-            <ul className="space-y-1 text-sm text-neutral-700">
-              <li>• Sales Increase</li>
-              <li>• Revenue Increase</li>
-              <li>• CPA Improvement</li>
-            </ul>
-          </div>
-        </div>
       </div>
 
       {/* Setup Instructions */}

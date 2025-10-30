@@ -258,6 +258,118 @@ export class GHLClient {
   }
 
   /**
+   * Add a note to a contact
+   */
+  async addNote(contactId: string, note: string): Promise<any> {
+    const response = await this.request(`/contacts/${contactId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({
+        body: note,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to add note: ${response.statusText}`)
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Get field mappings from admin settings
+   */
+  async getFieldMappings(): Promise<Record<string, string>> {
+    const supabase = await createClient()
+
+    const { data: mappingData } = await (supabase
+      .from('admin_settings') as any)
+      .select('setting_value')
+      .eq('setting_key', 'ghl_field_mappings')
+      .single()
+
+    if (!mappingData?.setting_value) {
+      // Return default mappings if none configured
+      return {
+        currentLeads: 'roi_current_leads',
+        currentSales: 'roi_current_sales',
+        currentAdSpend: 'roi_current_ad_spend',
+        currentRevenue: 'roi_current_revenue',
+        currentCR: 'roi_current_cr',
+        currentCPL: 'roi_current_cpl',
+        currentCPA: 'roi_current_cpa',
+        scenarioName: 'roi_scenario_name',
+        targetCR: 'roi_target_cr',
+        newSales: 'roi_new_sales',
+        newRevenue: 'roi_new_revenue',
+        salesIncrease: 'roi_sales_increase',
+        revenueIncrease: 'roi_revenue_increase',
+        cpaImprovement: 'roi_cpa_improvement',
+      }
+    }
+
+    return JSON.parse(mappingData.setting_value)
+  }
+
+  /**
+   * Get notes configuration
+   */
+  async getNotesConfig(): Promise<{ enabled: boolean; template: string }> {
+    const supabase = await createClient()
+
+    const { data: notesData } = await (supabase
+      .from('admin_settings') as any)
+      .select('setting_key, setting_value')
+      .in('setting_key', ['ghl_notes_enabled', 'ghl_notes_template'])
+
+    const settings = ((notesData as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
+      acc[setting.setting_key] = setting.setting_value
+      return acc
+    }, {} as Record<string, string>)
+
+    return {
+      enabled: settings.ghl_notes_enabled === 'true',
+      template: settings.ghl_notes_template || '',
+    }
+  }
+
+  /**
+   * Format note from template
+   */
+  formatNote(template: string, leadData: any): string {
+    let note = template
+
+    // Replace placeholders
+    const replacements: Record<string, any> = {
+      '{{firstName}}': leadData.firstName || '',
+      '{{lastName}}': leadData.lastName || '',
+      '{{email}}': leadData.email || '',
+      '{{phone}}': leadData.phone || '',
+      '{{companyName}}': leadData.companyName || '',
+      '{{currentLeads}}': leadData.currentLeads || '',
+      '{{currentSales}}': leadData.currentSales || '',
+      '{{currentAdSpend}}': leadData.currentAdSpend ? `$${leadData.currentAdSpend.toLocaleString()}` : '',
+      '{{currentRevenue}}': leadData.currentRevenue ? `$${leadData.currentRevenue.toLocaleString()}` : '',
+      '{{currentCR}}': leadData.currentCR ? `${leadData.currentCR}%` : '',
+      '{{currentCPL}}': leadData.currentCPL ? `$${leadData.currentCPL}` : '',
+      '{{currentCPA}}': leadData.currentCPA ? `$${leadData.currentCPA}` : '',
+      '{{scenarioName}}': leadData.scenarioName || '',
+      '{{targetCR}}': leadData.targetCR ? `${leadData.targetCR}%` : '',
+      '{{newSales}}': leadData.newSales || '',
+      '{{newRevenue}}': leadData.newRevenue ? `$${leadData.newRevenue.toLocaleString()}` : '',
+      '{{salesIncrease}}': leadData.salesIncrease || '',
+      '{{revenueIncrease}}': leadData.revenueIncrease ? `$${leadData.revenueIncrease.toLocaleString()}` : '',
+      '{{cpaImprovement}}': leadData.cpaImprovement ? `$${leadData.cpaImprovement}` : '',
+      '{{date}}': new Date().toLocaleString(),
+    }
+
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      note = note.replace(new RegExp(placeholder, 'g'), String(value))
+    }
+
+    return note
+  }
+
+  /**
    * Create or update contact with ROI data
    */
   async syncROIData(locationId: string, leadData: {
@@ -281,8 +393,39 @@ export class GHLClient {
     revenueIncrease?: number
     cpaImprovement?: number
   }): Promise<any> {
+    // Get field mappings and notes config
+    const fieldMappings = await this.getFieldMappings()
+    const notesConfig = await this.getNotesConfig()
+
     // Search for existing contact
     const existingContact = await this.searchContactByEmail(locationId, leadData.email)
+
+    // Build custom fields using mappings
+    const customFields: Record<string, any> = {}
+
+    const dataFieldMap: Record<string, any> = {
+      currentLeads: leadData.currentLeads,
+      currentSales: leadData.currentSales,
+      currentAdSpend: leadData.currentAdSpend,
+      currentRevenue: leadData.currentRevenue,
+      currentCR: leadData.currentCR,
+      currentCPL: leadData.currentCPL,
+      currentCPA: leadData.currentCPA,
+      scenarioName: leadData.scenarioName,
+      targetCR: leadData.targetCR,
+      newSales: leadData.newSales,
+      newRevenue: leadData.newRevenue,
+      salesIncrease: leadData.salesIncrease,
+      revenueIncrease: leadData.revenueIncrease,
+      cpaImprovement: leadData.cpaImprovement,
+    }
+
+    // Map data to custom fields
+    for (const [dataField, ghlField] of Object.entries(fieldMappings)) {
+      if (ghlField && dataFieldMap[dataField] !== undefined) {
+        customFields[ghlField] = dataFieldMap[dataField]
+      }
+    }
 
     const contactData = {
       firstName: leadData.firstName,
@@ -290,32 +433,26 @@ export class GHLClient {
       email: leadData.email,
       phone: leadData.phone,
       companyName: leadData.companyName,
-      customFields: {
-        roi_current_leads: leadData.currentLeads,
-        roi_current_sales: leadData.currentSales,
-        roi_current_ad_spend: leadData.currentAdSpend,
-        roi_current_revenue: leadData.currentRevenue,
-        roi_current_cr: leadData.currentCR,
-        roi_current_cpl: leadData.currentCPL,
-        roi_current_cpa: leadData.currentCPA,
-        roi_scenario_name: leadData.scenarioName,
-        roi_target_cr: leadData.targetCR,
-        roi_new_sales: leadData.newSales,
-        roi_new_revenue: leadData.newRevenue,
-        roi_sales_increase: leadData.salesIncrease,
-        roi_revenue_increase: leadData.revenueIncrease,
-        roi_cpa_improvement: leadData.cpaImprovement,
-      },
+      customFields,
       tags: ['roi-calculator', 'lead-capture'],
     }
 
+    let contact
     if (existingContact) {
       // Update existing contact
-      return this.updateContact(existingContact.id, contactData)
+      contact = await this.updateContact(existingContact.id, contactData)
     } else {
       // Create new contact
-      return this.createContact(locationId, contactData)
+      contact = await this.createContact(locationId, contactData)
     }
+
+    // Add note if enabled
+    if (notesConfig.enabled && notesConfig.template && contact.contact?.id) {
+      const note = this.formatNote(notesConfig.template, leadData)
+      await this.addNote(contact.contact.id, note)
+    }
+
+    return contact
   }
 }
 
