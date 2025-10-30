@@ -40,6 +40,12 @@ export default async function AdminPage() {
     .select('*')
     .in('setting_key', ['ghl_connected', 'ghl_location_id'])
 
+  const { data: calculatorVisits } = await supabase
+    .from('calculator_visits')
+    .select('*')
+    .order('visited_at', { ascending: false })
+    .limit(100)
+
   return (
     <>
       <Header
@@ -64,6 +70,7 @@ export default async function AdminPage() {
             users={allUsers || []}
             scenarios={allScenarios || []}
             ghlSettings={ghlSettings || []}
+            calculatorVisits={calculatorVisits || []}
           />
         </div>
       </main>

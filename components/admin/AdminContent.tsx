@@ -1,18 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight } from 'lucide-react'
+import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 
 interface AdminContentProps {
   users: any[]
   scenarios: any[]
   ghlSettings: any[]
+  calculatorVisits: any[]
 }
 
-type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl'
+type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits'
 
-export default function AdminContent({ users, scenarios, ghlSettings }: AdminContentProps) {
+export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits }: AdminContentProps) {
   const [activeSection, setActiveSection] = useState<ManagementSection>('overview')
   const isGHLConnected = ghlSettings.find(s => s.setting_key === 'ghl_connected')?.setting_value === 'true'
 
@@ -62,7 +63,7 @@ export default function AdminContent({ users, scenarios, ghlSettings }: AdminCon
         {/* Management Selection Cards */}
         <div>
           <h2 className="text-2xl font-bold text-neutral-900 mb-6">What would you like to manage?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* GoHighLevel Sync Card */}
             <button
               onClick={() => setActiveSection('ghl')}
@@ -119,6 +120,25 @@ export default function AdminContent({ users, scenarios, ghlSettings }: AdminCon
               <div className="flex items-center space-x-2">
                 <span className="text-2xl font-bold text-brand-secondary">{scenarios.length}</span>
                 <span className="text-sm text-neutral-600">Total Scenarios</span>
+              </div>
+            </button>
+
+            {/* Calculator Visits Card */}
+            <button
+              onClick={() => setActiveSection('visits')}
+              className="bg-gradient-to-br from-brand-accent/10 to-orange-100 border-2 border-brand-accent rounded-2xl p-8 text-left hover:shadow-xl transition-all hover:scale-105 group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <MousePointerClick className="h-12 w-12 text-brand-accent" />
+                <ChevronRight className="h-6 w-6 text-brand-accent group-hover:translate-x-1 transition-transform" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">Calculator Visits</h3>
+              <p className="text-neutral-600 mb-4">
+                View all calculator page visits with IP addresses and geolocation data
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-bold text-brand-accent">{calculatorVisits.length}</span>
+                <span className="text-sm text-neutral-600">Recent Visits</span>
               </div>
             </button>
           </div>
@@ -239,6 +259,56 @@ export default function AdminContent({ users, scenarios, ghlSettings }: AdminCon
             <h3 className="text-2xl font-bold text-neutral-900">GoHighLevel Integration</h3>
           </div>
           <GHLSettings initialSettings={ghlSettings} />
+        </div>
+      )}
+
+      {/* Calculator Visits Section */}
+      {activeSection === 'visits' && (
+        <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
+          <div className="flex items-center mb-6">
+            <MousePointerClick className="h-6 w-6 text-brand-accent mr-3" />
+            <h3 className="text-2xl font-bold text-neutral-900">Calculator Page Visits</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-neutral-200">
+                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">IP Address</th>
+                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Location</th>
+                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Visited At</th>
+                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">User Agent</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {calculatorVisits.map((visit) => (
+                  <tr key={visit.id} className="hover:bg-neutral-50">
+                    <td className="py-3 text-sm text-neutral-900 font-mono">{visit.ip_address || 'N/A'}</td>
+                    <td className="py-3 text-sm text-neutral-600">
+                      {visit.city && visit.region && visit.country ? (
+                        <span>{visit.city}, {visit.region}, {visit.country}</span>
+                      ) : visit.country ? (
+                        <span>{visit.country}</span>
+                      ) : (
+                        <span className="text-neutral-400">Unknown</span>
+                      )}
+                    </td>
+                    <td className="py-3 text-sm text-neutral-600">
+                      {new Date(visit.visited_at).toLocaleString()}
+                    </td>
+                    <td className="py-3 text-sm text-neutral-500 max-w-xs truncate" title={visit.user_agent}>
+                      {visit.user_agent || 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {calculatorVisits.length === 0 && (
+              <div className="text-center py-12">
+                <MousePointerClick className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+                <p className="text-neutral-500">No calculator visits recorded yet</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

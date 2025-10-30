@@ -1,0 +1,19 @@
+-- Create exec_sql function to allow executing raw SQL via RPC
+-- This is needed for running migrations programmatically
+-- Run this in Supabase Dashboard SQL Editor ONCE
+
+CREATE OR REPLACE FUNCTION exec_sql(sql text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  EXECUTE sql;
+END;
+$$;
+
+-- Grant execute permission to service role
+GRANT EXECUTE ON FUNCTION exec_sql(text) TO service_role;
+
+-- Verify it works
+SELECT 'SUCCESS: exec_sql function created!' AS status;
