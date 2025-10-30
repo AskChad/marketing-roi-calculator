@@ -10,6 +10,7 @@ interface GHLSettingsProps {
 
 export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isSavingCredentials, setIsSavingCredentials] = useState(false)
   const [locationId, setLocationId] = useState(
     initialSettings.find(s => s.setting_key === 'ghl_location_id')?.setting_value || ''
   )
@@ -21,6 +22,16 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
   )
   const [companyId, setCompanyId] = useState(
     initialSettings.find(s => s.setting_key === 'ghl_company_id')?.setting_value || ''
+  )
+  const [clientId, setClientId] = useState(
+    initialSettings.find(s => s.setting_key === 'ghl_client_id')?.setting_value || ''
+  )
+  const [clientSecret, setClientSecret] = useState(
+    initialSettings.find(s => s.setting_key === 'ghl_client_secret')?.setting_value || ''
+  )
+  const [credentialsSaved, setCredentialsSaved] = useState(
+    !!(initialSettings.find(s => s.setting_key === 'ghl_client_id')?.setting_value &&
+       initialSettings.find(s => s.setting_key === 'ghl_client_secret')?.setting_value)
   )
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -45,7 +56,48 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
     }
   }, [])
 
+  const handleSaveCredentials = async () => {
+    if (!clientId || !clientSecret) {
+      setErrorMessage('Please enter both Client ID and Client Secret')
+      return
+    }
+
+    setIsSavingCredentials(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    try {
+      const response = await fetch('/api/admin/ghl/credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clientId,
+          clientSecret,
+        }),
+      })
+
+      if (response.ok) {
+        setCredentialsSaved(true)
+        setSuccessMessage('GHL credentials saved successfully! You can now connect.')
+        setTimeout(() => setSuccessMessage(''), 3000)
+      } else {
+        setErrorMessage('Failed to save credentials')
+      }
+    } catch (error) {
+      console.error('Save credentials error:', error)
+      setErrorMessage('An error occurred. Please try again.')
+    } finally {
+      setIsSavingCredentials(false)
+    }
+  }
+
   const handleConnect = () => {
+    if (!credentialsSaved) {
+      setErrorMessage('Please save your GHL credentials first')
+      return
+    }
     // Redirect to OAuth authorization endpoint
     window.location.href = '/api/admin/ghl/authorize'
   }
@@ -232,36 +284,80 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
         </ul>
       </div>
 
-      {/* OAuth Configuration Info */}
+      {/* OAuth Configuration */}
       {!isConnected && (
         <div className="mt-8 pt-8 border-t border-neutral-200">
           <h4 className="font-semibold text-neutral-900 mb-4 text-lg">OAuth App Configuration</h4>
           <p className="text-sm text-neutral-600 mb-6">
-            Before connecting, you need to create an OAuth app in GoHighLevel and configure your environment variables.
+            Before connecting, you need to create an OAuth app in GoHighLevel and enter your credentials below.
           </p>
 
-          {/* Environment Variables */}
+          {/* GHL Credentials Input */}
           <div className="mb-6">
-            <h5 className="font-semibold text-neutral-900 mb-3">Required Environment Variables</h5>
-            <div className="space-y-3">
-              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
-                <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">GHL_CLIENT_ID</p>
-                <p className="font-mono text-sm text-neutral-900 mb-1">Your GoHighLevel App Client ID</p>
-                <p className="text-xs text-neutral-500">Get this from your GHL OAuth app settings</p>
+            <h5 className="font-semibold text-neutral-900 mb-3">GHL App Credentials</h5>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Client ID
+                </label>
+                <input
+                  type="text"
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                  placeholder="Enter your GoHighLevel Client ID"
+                  className="w-full px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  disabled={credentialsSaved && !isLoading}
+                />
+                <p className="text-xs text-neutral-500 mt-1">Get this from your GHL OAuth app settings</p>
               </div>
 
-              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
-                <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">GHL_CLIENT_SECRET</p>
-                <p className="font-mono text-sm text-neutral-900 mb-1">Your GoHighLevel App Client Secret</p>
-                <p className="text-xs text-neutral-500">Get this from your GHL OAuth app settings</p>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Client Secret
+                </label>
+                <input
+                  type="password"
+                  value={clientSecret}
+                  onChange={(e) => setClientSecret(e.target.value)}
+                  placeholder="Enter your GoHighLevel Client Secret"
+                  className="w-full px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  disabled={credentialsSaved && !isLoading}
+                />
+                <p className="text-xs text-neutral-500 mt-1">Get this from your GHL OAuth app settings</p>
               </div>
 
-              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
-                <p className="text-xs font-semibold text-neutral-600 uppercase mb-2">GHL_REDIRECT_URI (Optional)</p>
-                <p className="font-mono text-sm text-neutral-900 mb-1">
-                  {typeof window !== 'undefined' ? `${window.location.origin}/api/admin/ghl/callback` : '[YOUR_DOMAIN]/api/admin/ghl/callback'}
-                </p>
-                <p className="text-xs text-neutral-500">Defaults to NEXT_PUBLIC_APP_URL + /api/admin/ghl/callback</p>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleSaveCredentials}
+                  disabled={isSavingCredentials || !clientId || !clientSecret}
+                  className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-dark transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {isSavingCredentials ? (
+                    <>
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                      Saving...
+                    </>
+                  ) : credentialsSaved ? (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Credentials Saved
+                    </>
+                  ) : (
+                    'Save Credentials'
+                  )}
+                </button>
+                {credentialsSaved && (
+                  <button
+                    onClick={() => {
+                      setCredentialsSaved(false)
+                      setClientId('')
+                      setClientSecret('')
+                    }}
+                    className="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 transition font-medium text-sm"
+                  >
+                    Edit Credentials
+                  </button>
+                )}
               </div>
             </div>
           </div>

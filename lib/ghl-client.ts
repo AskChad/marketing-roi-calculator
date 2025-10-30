@@ -52,8 +52,21 @@ export class GHLClient {
    */
   private async refreshAccessToken(refreshToken: string): Promise<boolean> {
     try {
-      const clientId = process.env.GHL_CLIENT_ID
-      const clientSecret = process.env.GHL_CLIENT_SECRET
+      const supabase = await createClient()
+
+      // Get credentials from database (fallback to environment)
+      const { data: credentials } = await (supabase
+        .from('admin_settings') as any)
+        .select('setting_key, setting_value')
+        .in('setting_key', ['ghl_client_id', 'ghl_client_secret'])
+
+      const credentialsMap = ((credentials as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
+        acc[setting.setting_key] = setting.setting_value
+        return acc
+      }, {} as Record<string, string>)
+
+      const clientId = credentialsMap.ghl_client_id || process.env.GHL_CLIENT_ID
+      const clientSecret = credentialsMap.ghl_client_secret || process.env.GHL_CLIENT_SECRET
 
       if (!clientId || !clientSecret) {
         throw new Error('GHL OAuth credentials not configured')
@@ -77,7 +90,6 @@ export class GHLClient {
       }
 
       const tokenData = await response.json()
-      const supabase = await createClient()
 
       // Update tokens in database
       const settings = [

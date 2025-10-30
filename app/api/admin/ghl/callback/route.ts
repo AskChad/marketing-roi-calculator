@@ -41,9 +41,19 @@ export async function GET(request: NextRequest) {
     const stateData = JSON.parse(Buffer.from(state, 'base64').toString())
     const userId = stateData.userId
 
-    // Get GHL OAuth credentials
-    const clientId = process.env.GHL_CLIENT_ID
-    const clientSecret = process.env.GHL_CLIENT_SECRET
+    // Get GHL OAuth credentials from database (fallback to environment)
+    const { data: credentials } = await (supabase
+      .from('admin_settings') as any)
+      .select('setting_key, setting_value')
+      .in('setting_key', ['ghl_client_id', 'ghl_client_secret'])
+
+    const credentialsMap = ((credentials as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
+      acc[setting.setting_key] = setting.setting_value
+      return acc
+    }, {} as Record<string, string>)
+
+    const clientId = credentialsMap.ghl_client_id || process.env.GHL_CLIENT_ID
+    const clientSecret = credentialsMap.ghl_client_secret || process.env.GHL_CLIENT_SECRET
     const redirectUri = process.env.GHL_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/admin/ghl/callback`
 
     if (!clientId || !clientSecret) {

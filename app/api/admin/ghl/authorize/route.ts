@@ -22,14 +22,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    // Get GHL OAuth credentials from environment
-    const clientId = process.env.GHL_CLIENT_ID
+    // Get GHL OAuth credentials from database (fallback to environment)
+    const { data: credentials } = await (supabase
+      .from('admin_settings') as any)
+      .select('setting_key, setting_value')
+      .in('setting_key', ['ghl_client_id'])
+
+    const credentialsMap = ((credentials as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
+      acc[setting.setting_key] = setting.setting_value
+      return acc
+    }, {} as Record<string, string>)
+
+    const clientId = credentialsMap.ghl_client_id || process.env.GHL_CLIENT_ID
     const redirectUri = process.env.GHL_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/admin/ghl/callback`
 
     if (!clientId) {
-      return NextResponse.json(
-        { error: 'GHL OAuth credentials not configured' },
-        { status: 500 }
+      return NextResponse.redirect(
+        new URL('/admin?error=missing_client_id', request.url)
       )
     }
 
