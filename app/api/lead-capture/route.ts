@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { Database } from '@/types/database'
+import { ghlClient } from '@/lib/ghl-client'
 
 const leadCaptureSchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -10,6 +11,23 @@ const leadCaptureSchema = z.object({
   phone: z.string().optional(),
   companyName: z.string().min(1).max(255),
   websiteUrl: z.string().url().optional().or(z.literal('')),
+  // Optional ROI data for GHL sync
+  roiData: z.object({
+    currentLeads: z.number().optional(),
+    currentSales: z.number().optional(),
+    currentAdSpend: z.number().optional(),
+    currentRevenue: z.number().optional(),
+    currentCR: z.number().optional(),
+    currentCPL: z.number().optional(),
+    currentCPA: z.number().optional(),
+    scenarioName: z.string().optional(),
+    targetCR: z.number().optional(),
+    newSales: z.number().optional(),
+    newRevenue: z.number().optional(),
+    salesIncrease: z.number().optional(),
+    revenueIncrease: z.number().optional(),
+    cpaImprovement: z.number().optional(),
+  }).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -46,8 +64,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Sync to GHL (admin's account)
-    // This will be implemented in the GHL integration phase
+    // Sync to GHL (admin's account) if connected
+    try {
+      // Check if GHL is connected
+      const { data: ghlSettings } = await (supabase
+        .from('admin_settings') as any)
+        .select('setting_key, setting_value')
+        .in('setting_key', ['ghl_connected', 'ghl_location_id'])
+
+      const settingsMap = ((ghlSettings as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
+        acc[setting.setting_key] = setting.setting_value
+        return acc
+      }, {} as Record<string, string>)
+
+      const isConnected = settingsMap.ghl_connected === 'true'
+      const locationId = settingsMap.ghl_location_id
+
+      if (isConnected && locationId) {
+        // Sync to GHL with ROI data if provided
+        await ghlClient.syncROIData(locationId, {
+          email: validatedData.email,
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
+          phone: validatedData.phone,
+          companyName: validatedData.companyName,
+          ...(validatedData.roiData || {}),
+        })
+
+        console.log('Successfully synced lead to GoHighLevel:', validatedData.email)
+      } else {
+        console.log('GHL not connected, skipping sync')
+      }
+    } catch (ghlError) {
+      // Log GHL sync error but don't fail the lead capture
+      console.error('GHL sync error (non-fatal):', ghlError)
+    }
 
     return NextResponse.json({
       success: true,
