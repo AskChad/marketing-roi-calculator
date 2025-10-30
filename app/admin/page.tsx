@@ -13,6 +13,7 @@ interface CalculatorVisit {
   country: string | null
   region: string | null
   city: string | null
+  zipcode: string | null
   latitude: number | null
   longitude: number | null
   timezone: string | null

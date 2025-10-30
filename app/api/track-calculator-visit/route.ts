@@ -17,13 +17,12 @@ export async function POST(request: NextRequest) {
 
     // Fetch geolocation data
     const geoData = await getIPGeolocation(ipAddress)
-    const geoFields = extractGeolocationFields(geoData)
 
     // Check if user is logged in
     const { data: { user } } = await supabase.auth.getUser()
     const userId = user?.id || null
 
-    // Insert visit record
+    // Insert visit record with mapped geo fields
     const { error: insertError } = await supabase
       .from('calculator_visits')
       .insert([{
@@ -32,7 +31,13 @@ export async function POST(request: NextRequest) {
         ip_address: ipAddress,
         user_agent: userAgent,
         referrer: referrer,
-        ...geoFields,
+        country: geoData?.country_name || null,
+        region: geoData?.state_prov || null,
+        city: geoData?.city || null,
+        zipcode: geoData?.zipcode || null,
+        latitude: geoData?.latitude ? parseFloat(geoData.latitude) : null,
+        longitude: geoData?.longitude ? parseFloat(geoData.longitude) : null,
+        timezone: geoData?.time_zone?.name || null,
       }] as any)
 
     if (insertError) {
