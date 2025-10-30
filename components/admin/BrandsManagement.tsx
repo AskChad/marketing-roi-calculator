@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Plus, Edit, Save, X, Palette, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import ImageUpload from './ImageUpload'
 
 interface Brand {
   id: string
@@ -274,6 +275,34 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
             <div>
               <h4 className="font-semibold text-neutral-900 mb-3">Branding Assets</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ImageUpload
+                  brandId={editingBrand.id}
+                  fileType="logo"
+                  currentUrl={editingBrand.logo_url}
+                  onUploadComplete={(url) => handleChange('logo_url', url)}
+                  label="Logo"
+                />
+                <ImageUpload
+                  brandId={editingBrand.id}
+                  fileType="logo_dark"
+                  currentUrl={editingBrand.logo_dark_url}
+                  onUploadComplete={(url) => handleChange('logo_dark_url', url)}
+                  label="Dark Logo"
+                />
+                <ImageUpload
+                  brandId={editingBrand.id}
+                  fileType="favicon"
+                  currentUrl={editingBrand.favicon_url}
+                  onUploadComplete={(url) => handleChange('favicon_url', url)}
+                  label="Favicon"
+                />
+              </div>
+            </div>
+
+            {/* Or use URLs directly */}
+            <div>
+              <h4 className="font-semibold text-neutral-900 mb-3">Or Use URLs</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">Logo URL</label>
                   <input
@@ -281,7 +310,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
                     value={editingBrand.logo_url || ''}
                     onChange={(e) => handleChange('logo_url', e.target.value)}
                     placeholder="https://..."
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
                   />
                 </div>
                 <div>
@@ -291,7 +320,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
                     value={editingBrand.logo_dark_url || ''}
                     onChange={(e) => handleChange('logo_dark_url', e.target.value)}
                     placeholder="https://..."
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
                   />
                 </div>
                 <div>
