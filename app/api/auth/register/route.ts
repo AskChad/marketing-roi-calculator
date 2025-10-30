@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
+import { getTrackingId } from '@/lib/tracking'
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -19,6 +20,9 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
+    // Get tracking ID from cookie (if user was anonymous before)
+    const trackingId = getTrackingId(request)
+
     // Capture IP and fetch geolocation
     const ipAddress = getIPAddress(request)
     const geoData = await getIPGeolocation(ipAddress)
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
         phone: validatedData.phone,
         company_name: validatedData.companyName || 'Not Provided',
         ip_address: ipAddress,
+        tracking_id: trackingId,
         visit_count: 1,
         ...geoFields,
       }])
@@ -86,7 +91,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Step 3: Create user record in users table with lead_capture_id
+    // Step 3: Create user record in users table with lead_capture_id and tracking_id
     const { error: userError } = await supabase
       .from('users')
       .insert([{
@@ -99,6 +104,7 @@ export async function POST(request: NextRequest) {
         password_hash: '', // Auth handles this
         is_admin: false,
         lead_capture_id: leadCaptureId,  // Link to lead_captures
+        tracking_id: trackingId,  // Preserve anonymous visitor tracking
       }] as any)
 
     if (userError) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import CurrentROIForm from '@/components/calculator/CurrentROIForm'
 import ProspectiveScenarioForm from '@/components/calculator/ProspectiveScenarioForm'
@@ -10,6 +11,7 @@ import { BaselineMetrics, TargetScenario, DualTimeframeResult } from '@/lib/calc
 import { ArrowRight } from 'lucide-react'
 
 export default function CalculatorPage() {
+  const router = useRouter()
   const [currentMetrics, setCurrentMetrics] = useState<BaselineMetrics | null>(null)
   const [showScenarioForm, setShowScenarioForm] = useState(false)
   const [results, setResults] = useState<DualTimeframeResult | null>(null)
@@ -18,6 +20,20 @@ export default function CalculatorPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [savedScenarios, setSavedScenarios] = useState<any[]>([])
   const [isLoadingScenarios, setIsLoadingScenarios] = useState(true)
+  const [hasTrackingCookie, setHasTrackingCookie] = useState(false)
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+
+  // Check for tracking cookie (client-side only)
+  useEffect(() => {
+    const checkTrackingCookie = () => {
+      // Check if visitor_tracking_id cookie exists
+      const cookies = document.cookie.split(';')
+      const hasTracking = cookies.some(cookie => cookie.trim().startsWith('visitor_tracking_id='))
+      setHasTrackingCookie(hasTracking)
+    }
+
+    checkTrackingCookie()
+  }, [])
 
   // Check authentication and fetch scenarios on mount
   useEffect(() => {
@@ -29,16 +45,19 @@ export default function CalculatorPage() {
           setIsLoggedIn(true)
           setIsAdmin(data.isAdmin || false)
           setSavedScenarios(data.scenarios || [])
+          setIsCheckingAccess(false)
         } else {
           setIsLoggedIn(false)
           setIsAdmin(false)
           setSavedScenarios([])
+          setIsCheckingAccess(false)
         }
       } catch (error) {
         console.error('Error fetching scenarios:', error)
         setIsLoggedIn(false)
         setIsAdmin(false)
         setSavedScenarios([])
+        setIsCheckingAccess(false)
       } finally {
         setIsLoadingScenarios(false)
       }
@@ -46,6 +65,13 @@ export default function CalculatorPage() {
 
     checkAuthAndFetchScenarios()
   }, [])
+
+  // Redirect to landing page if not logged in and no tracking cookie
+  useEffect(() => {
+    if (!isCheckingAccess && !isLoggedIn && !hasTrackingCookie) {
+      router.push('/')
+    }
+  }, [isCheckingAccess, isLoggedIn, hasTrackingCookie, router])
 
   const handleCurrentMetricsSubmit = (metrics: BaselineMetrics) => {
     setCurrentMetrics(metrics)
@@ -163,6 +189,25 @@ export default function CalculatorPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }, 100)
     })
+  }
+
+  // Show loading while checking access
+  if (isCheckingAccess) {
+    return (
+      <>
+        <Header showLogin={true} isAdmin={isAdmin} />
+        <main className="min-h-screen bg-gradient-to-br from-neutral-50 to-white py-12">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto mb-4"></div>
+                <p className="text-neutral-600">Loading calculator...</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
+    )
   }
 
   return (

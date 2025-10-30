@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { Database } from '@/types/database'
 import { ghlClient } from '@/lib/ghl-client'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
+import { getOrCreateTrackingId, setTrackingCookie } from '@/lib/tracking'
 
 const leadCaptureSchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -41,6 +42,9 @@ export async function POST(request: NextRequest) {
     // Create Supabase client
     const supabase = await createClient()
 
+    // Get or create tracking ID for anonymous visitor
+    const { trackingId } = getOrCreateTrackingId(request)
+
     // Capture IP address and tracking info
     const ipAddress = getIPAddress(request)
     const userAgent = getUserAgent(request)
@@ -50,7 +54,7 @@ export async function POST(request: NextRequest) {
     const geoData = await getIPGeolocation(ipAddress)
     const geoFields = extractGeolocationFields(geoData)
 
-    // Insert lead capture with IP tracking and geolocation
+    // Insert lead capture with IP tracking, geolocation, and tracking ID
     const insertData: any = {
       first_name: validatedData.firstName,
       last_name: validatedData.lastName,
@@ -59,6 +63,7 @@ export async function POST(request: NextRequest) {
       company_name: validatedData.companyName,
       website_url: validatedData.websiteUrl || null,
       ip_address: ipAddress,
+      tracking_id: trackingId,
       visit_count: 1,
       ...geoFields,
     }
@@ -130,10 +135,15 @@ export async function POST(request: NextRequest) {
       console.error('GHL sync error (non-fatal):', ghlError)
     }
 
-    return NextResponse.json({
+    // Create response and set tracking cookie
+    const response = NextResponse.json({
       success: true,
       leadCaptureId: (data as any)?.id || null,
     })
+
+    setTrackingCookie(response, trackingId)
+
+    return response
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
