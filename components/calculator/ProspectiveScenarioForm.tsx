@@ -110,11 +110,11 @@ export default function ProspectiveScenarioForm({
         </div>
         <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
           <p className="text-xs text-neutral-600 mb-1">Current CPL</p>
-          <p className="text-lg font-bold text-neutral-900">${currentCPL}</p>
+          <p className="text-lg font-bold text-neutral-900">${formatNumber(parseFloat(currentCPL))}</p>
         </div>
         <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
           <p className="text-xs text-neutral-600 mb-1">Current CPA</p>
-          <p className="text-lg font-bold text-neutral-900">${currentCPA}</p>
+          <p className="text-lg font-bold text-neutral-900">${formatNumber(parseFloat(currentCPA))}</p>
         </div>
         <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
           <p className="text-xs text-neutral-600 mb-1">Current Revenue</p>

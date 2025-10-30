@@ -9,10 +9,11 @@ import ROICalculator from '@/components/calculator/ROICalculator'
 interface DashboardContentProps {
   scenarios: any[]
   userId: string
+  userName: string
   isAdmin: boolean
 }
 
-export default function DashboardContent({ scenarios, userId, isAdmin }: DashboardContentProps) {
+export default function DashboardContent({ scenarios, userId, userName, isAdmin }: DashboardContentProps) {
   const [showChat, setShowChat] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -67,7 +68,12 @@ export default function DashboardContent({ scenarios, userId, isAdmin }: Dashboa
           <p className="text-neutral-600 mb-8">
             Calculate your current marketing performance and model prospective scenarios
           </p>
-          <ROICalculator userId={userId} onScenarioSaved={handleScenarioSaved} />
+          <ROICalculator
+            userId={userId}
+            userName={userName}
+            existingScenarios={scenarios}
+            onScenarioSaved={handleScenarioSaved}
+          />
         </div>
 
         {/* Saved Scenarios */}

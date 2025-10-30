@@ -49,6 +49,7 @@ export default async function DashboardPage() {
           <DashboardContent
             scenarios={scenarios || []}
             userId={user.id}
+            userName={(userData as any)?.first_name || user.email?.split('@')[0] || 'User'}
             isAdmin={(userData as any)?.is_admin || false}
           />
         </div>

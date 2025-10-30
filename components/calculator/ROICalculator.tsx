@@ -9,10 +9,12 @@ import { ArrowRight } from 'lucide-react'
 
 interface ROICalculatorProps {
   userId?: string
+  userName?: string
+  existingScenarios?: any[]
   onScenarioSaved?: () => void
 }
 
-export default function ROICalculator({ userId, onScenarioSaved }: ROICalculatorProps) {
+export default function ROICalculator({ userId, userName, existingScenarios = [], onScenarioSaved }: ROICalculatorProps) {
   const [currentMetrics, setCurrentMetrics] = useState<BaselineMetrics | null>(null)
   const [showScenarioForm, setShowScenarioForm] = useState(false)
   const [results, setResults] = useState<DualTimeframeResult | null>(null)
@@ -23,11 +25,32 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
     setShowScenarioForm(true)
   }
 
+  const generateScenarioName = (): string => {
+    if (!userName) {
+      return `Scenario ${new Date().toLocaleString()}`
+    }
+
+    // Get today's date in MM/DD/YYYY format
+    const today = new Date()
+    const dateStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`
+
+    // Count scenarios created today
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const todayScenarios = existingScenarios.filter((s: any) => {
+      const scenarioDate = new Date(s.created_at)
+      return scenarioDate >= todayStart
+    })
+
+    const sequenceNumber = todayScenarios.length + 1
+
+    return `${userName} - ${dateStr} #${sequenceNumber}`
+  }
+
   const handleScenarioSubmit = async (scenario: TargetScenario) => {
     if (!currentMetrics) return
 
     // Generate automatic scenario name if not provided
-    const autoScenarioName = scenario.scenarioName || `Scenario ${new Date().toLocaleString()}`
+    const autoScenarioName = scenario.scenarioName || generateScenarioName()
     setScenarioName(autoScenarioName)
 
     // Import calculation function dynamically to avoid client-side issues
@@ -36,7 +59,7 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
     setResults(calculatedResults)
 
     // Auto-save for logged-in users
-    if (userId && userId.length > 0) {
+    if (userId) {
       try {
         const primary = currentMetrics.timePeriod === 'weekly' ? calculatedResults.weekly : calculatedResults.monthly
 
@@ -86,7 +109,7 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
 
   return (
     <div className="w-full">
-      {!results || (userId && userId.length > 0) ? (
+      {!results || userId ? (
         <div>
           {/* Two-Input Design */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
