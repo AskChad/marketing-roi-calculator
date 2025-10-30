@@ -73,6 +73,28 @@ export default function CalculatorPage() {
     }
   }, [isCheckingAccess, isLoggedIn, hasTrackingCookie, router])
 
+  // Track calculator page visit
+  useEffect(() => {
+    // Only track if access is granted (either logged in or has tracking cookie)
+    if (!isCheckingAccess && (isLoggedIn || hasTrackingCookie)) {
+      const trackVisit = async () => {
+        try {
+          await fetch('/api/track-calculator-visit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+        } catch (error) {
+          // Silent fail - don't disrupt user experience if tracking fails
+          console.error('Error tracking visit:', error)
+        }
+      }
+
+      trackVisit()
+    }
+  }, [isCheckingAccess, isLoggedIn, hasTrackingCookie])
+
   const handleCurrentMetricsSubmit = (metrics: BaselineMetrics) => {
     setCurrentMetrics(metrics)
     setShowScenarioForm(true)
