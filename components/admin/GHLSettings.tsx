@@ -281,6 +281,7 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
           <li>• <strong>Contacts:</strong> Read and write contact information</li>
           <li>• <strong>Opportunities:</strong> Read and write opportunities</li>
           <li>• <strong>Custom Fields:</strong> Read and write custom field values</li>
+          <li>• <strong>Custom Values:</strong> Read and write custom values</li>
         </ul>
       </div>
 
@@ -400,6 +401,12 @@ export default function GHLSettings({ initialSettings }: GHLSettingsProps) {
               </div>
               <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
                 locations/customFields.write
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                locations/customValues.readonly
+              </div>
+              <div className="p-3 bg-neutral-50 border border-neutral-200 rounded text-sm font-mono">
+                locations/customValues.write
               </div>
             </div>
           </div>

@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
       'opportunities.write',
       'locations/customFields.readonly',
       'locations/customFields.write',
+      'locations/customValues.readonly',
+      'locations/customValues.write',
     ]
     authUrl.searchParams.append('scope', scopes.join(' '))
 

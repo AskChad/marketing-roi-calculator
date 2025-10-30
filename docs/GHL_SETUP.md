@@ -36,6 +36,8 @@ Select the following scopes for your OAuth app:
 - ✅ `opportunities.write` - Create and update opportunities (optional, for future use)
 - ✅ `locations/customFields.readonly` - Read custom fields
 - ✅ `locations/customFields.write` - Update custom field values
+- ✅ `locations/customValues.readonly` - Read custom values
+- ✅ `locations/customValues.write` - Update custom values
 
 ### Save and Get Credentials
 
