@@ -128,7 +128,15 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
     return scenarios.filter(scenario => {
       const session = scenario.calculator_sessions
 
-      // Search term filter - search across ALL fields
+      // Calculate all percentage metrics for search
+      const salesIncreasePct = session ? (scenario.sales_increase / session.current_sales) * 100 : 0
+      const revenueIncreasePct = session ? (scenario.revenue_increase / session.current_revenue) * 100 : 0
+      const cpaImprovement = session ? session.current_cpa - scenario.new_cpa : 0
+      const cplImprovement = session ? session.current_cpl - scenario.new_cpl : 0
+      const cplImprovementPct = session ? ((session.current_cpl - scenario.new_cpl) / session.current_cpl) * 100 : 0
+      const convRateChange = session ? scenario.target_conversion_rate - session.current_conversion_rate : 0
+
+      // Search term filter - search across ALL fields including calculated percentages
       if (searchTerm) {
         const search = searchTerm.toLowerCase()
         const matchesSearch =
@@ -151,7 +159,14 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
           (session?.current_cpl.toString().includes(search)) ||
           (session?.current_cpa.toString().includes(search)) ||
           (session?.current_ad_spend.toString().includes(search)) ||
-          (session?.current_revenue.toString().includes(search))
+          (session?.current_revenue.toString().includes(search)) ||
+          // Search calculated percentages
+          salesIncreasePct.toFixed(1).includes(search) ||
+          revenueIncreasePct.toFixed(1).includes(search) ||
+          cpaImprovement.toFixed(2).includes(search) ||
+          cplImprovement.toFixed(2).includes(search) ||
+          cplImprovementPct.toFixed(1).includes(search) ||
+          convRateChange.toFixed(2).includes(search)
 
         if (!matchesSearch) return false
       }
