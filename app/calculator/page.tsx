@@ -157,10 +157,12 @@ export default function CalculatorPage() {
     import('@/lib/calculations').then(({ calculateDualTimeframeROI }) => {
       const calculatedResults = calculateDualTimeframeROI(baselineMetrics, targetScenario)
       setResults(calculatedResults)
-    })
 
-    // Scroll to top to see the loaded scenario
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+      // Scroll to top to see the "Your ROI Analysis" results after state update
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 100)
+    })
   }
 
   return (
