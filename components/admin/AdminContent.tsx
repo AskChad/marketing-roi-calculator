@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 import VisitsTable from './VisitsTable'
+import ScenariosTable from './ScenariosTable'
 
 interface AdminContentProps {
   users: any[]
@@ -209,46 +210,9 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
         <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
           <div className="flex items-center mb-6">
             <TrendingUp className="h-6 w-6 text-brand-primary mr-3" />
-            <h3 className="text-2xl font-bold text-neutral-900">Recent Scenarios</h3>
+            <h3 className="text-2xl font-bold text-neutral-900">ROI Scenarios</h3>
           </div>
-          <div className="space-y-3">
-            {scenarios.slice(0, 50).map((scenario) => (
-              <div
-                key={scenario.id}
-                className="border border-neutral-200 rounded-lg p-4 hover:shadow-md transition"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-semibold text-neutral-900">{scenario.scenario_name}</h4>
-                    <p className="text-sm text-neutral-600">
-                      {scenario.users?.email || 'Unknown User'}
-                    </p>
-                  </div>
-                  <p className="text-sm text-neutral-500">
-                    {new Date(scenario.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-neutral-600">Sales: </span>
-                    <span className="font-semibold">+{scenario.sales_increase}</span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-600">Revenue: </span>
-                    <span className="font-semibold">
-                      ${(scenario.revenue_increase / 1000).toFixed(1)}k
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-600">CPA: </span>
-                    <span className="font-semibold text-success-dark">
-                      {scenario.cpa_improvement_percent.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ScenariosTable scenarios={scenarios} />
         </div>
       )}
 

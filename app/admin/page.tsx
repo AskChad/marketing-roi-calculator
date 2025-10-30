@@ -70,7 +70,7 @@ export default async function AdminPage() {
     .from('roi_scenarios')
     .select('*, users(email)')
     .order('created_at', { ascending: false })
-    .limit(50)
+    .limit(1000)
 
   const { data: ghlSettings } = await supabase
     .from('admin_settings')
