@@ -52,19 +52,56 @@ export default function CalculatorPage() {
     setShowScenarioForm(true)
   }
 
-  const handleScenarioSubmit = (scenario: TargetScenario) => {
+  const handleScenarioSubmit = async (scenario: TargetScenario) => {
     if (!currentMetrics) return
 
-    // Store scenario name for use in ResultsDisplay
-    if (scenario.scenarioName) {
-      setScenarioName(scenario.scenarioName)
-    }
+    // Generate automatic scenario name if not provided
+    const autoScenarioName = scenario.scenarioName || `Scenario ${new Date().toLocaleString()}`
+    setScenarioName(autoScenarioName)
 
     // Import calculation function dynamically to avoid client-side issues
-    import('@/lib/calculations').then(({ calculateDualTimeframeROI }) => {
-      const calculatedResults = calculateDualTimeframeROI(currentMetrics, scenario)
-      setResults(calculatedResults)
-    })
+    const { calculateDualTimeframeROI } = await import('@/lib/calculations')
+    const calculatedResults = calculateDualTimeframeROI(currentMetrics, scenario)
+    setResults(calculatedResults)
+
+    // Auto-save for logged-in users
+    if (isLoggedIn) {
+      try {
+        const primary = currentMetrics.timePeriod === 'weekly' ? calculatedResults.weekly : calculatedResults.monthly
+
+        const response = await fetch('/api/scenarios', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            scenarioName: autoScenarioName,
+            baselineMetrics: currentMetrics,
+            targetConversionRate: primary.prospective.targetConversionRate,
+            adjustedLeads: primary.prospective.leads !== currentMetrics.leads ? primary.prospective.leads : null,
+            adjustedAdSpend: primary.prospective.adSpend !== currentMetrics.adSpend ? primary.prospective.adSpend : null,
+            newSales: primary.prospective.newSales,
+            newCPL: primary.prospective.newCPL,
+            newCPA: primary.prospective.newCPA,
+            newRevenue: primary.prospective.newRevenue,
+            salesIncrease: primary.prospective.salesIncrease,
+            revenueIncrease: primary.prospective.revenueIncrease,
+            cpaImprovementPercent: primary.prospective.cpaImprovementPercent,
+          }),
+        })
+
+        if (response.ok) {
+          // Refresh scenarios list
+          const scenariosResponse = await fetch('/api/scenarios')
+          if (scenariosResponse.ok) {
+            const data = await scenariosResponse.json()
+            setSavedScenarios(data.scenarios || [])
+          }
+        }
+      } catch (error) {
+        console.error('Auto-save error (non-fatal):', error)
+      }
+    }
   }
 
   const handleReset = () => {
