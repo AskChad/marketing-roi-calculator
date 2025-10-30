@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getIPAddress, getUserAgent, getReferrer } from '@/lib/get-ip-address'
 
 const registerSchema = z.object({
   email: z.string().email(),
   phone: z.string().min(10),
   password: z.string().min(6),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  companyName: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -15,7 +19,48 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Create auth user
+    // Step 1: Create lead_capture entry first (for non-admin users)
+    // This ensures all registered users are in the leads table
+    const { data: leadCapture, error: leadError } = await (supabase
+      .from('lead_captures') as any)
+      .insert([{
+        first_name: validatedData.firstName || 'Unknown',
+        last_name: validatedData.lastName || 'User',
+        email: validatedData.email,
+        phone: validatedData.phone,
+        company_name: validatedData.companyName || 'Not Provided',
+        ip_address: getIPAddress(request),
+        visit_count: 1,
+      }])
+      .select('id')
+      .single()
+
+    if (leadError) {
+      console.error('Lead capture creation error:', leadError)
+      return NextResponse.json(
+        { error: 'Failed to create contact record' },
+        { status: 500 }
+      )
+    }
+
+    const leadCaptureId = (leadCapture as any)?.id
+
+    // Log the visit
+    try {
+      await (supabase
+        .from('visit_logs') as any)
+        .insert({
+          lead_capture_id: leadCaptureId,
+          ip_address: getIPAddress(request),
+          user_agent: getUserAgent(request),
+          page_path: '/register',
+          referrer: getReferrer(request),
+        })
+    } catch (visitLogError) {
+      console.error('Visit log error (non-fatal):', visitLogError)
+    }
+
+    // Step 2: Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: validatedData.email,
       password: validatedData.password,
@@ -35,15 +80,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create user record in users table
+    // Step 3: Create user record in users table with lead_capture_id
     const { error: userError } = await supabase
       .from('users')
       .insert([{
         id: authData.user.id,
         email: validatedData.email,
         phone: validatedData.phone,
+        first_name: validatedData.firstName,
+        last_name: validatedData.lastName,
+        company_name: validatedData.companyName,
         password_hash: '', // Auth handles this
         is_admin: false,
+        lead_capture_id: leadCaptureId,  // Link to lead_captures
       }] as any)
 
     if (userError) {

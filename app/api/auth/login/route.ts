@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getIPAddress, getUserAgent, getReferrer } from '@/lib/get-ip-address'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -24,6 +25,54 @@ export async function POST(request: NextRequest) {
         { error: error.message || 'Invalid credentials' },
         { status: 401 }
       )
+    }
+
+    // Track visit for non-admin users
+    try {
+      const { data: userData } = await (supabase
+        .from('users') as any)
+        .select('lead_capture_id, is_admin')
+        .eq('id', data.user.id)
+        .single()
+
+      if (userData && !(userData as any).is_admin && (userData as any).lead_capture_id) {
+        const ipAddress = getIPAddress(request)
+        const userAgent = getUserAgent(request)
+        const referrer = getReferrer(request)
+
+        const leadCaptureId = (userData as any).lead_capture_id
+
+        // Get current visit count
+        const { data: leadData } = await (supabase
+          .from('lead_captures') as any)
+          .select('visit_count')
+          .eq('id', leadCaptureId)
+          .single()
+
+        const currentVisitCount = leadData?.visit_count || 0
+
+        // Update visit count and IP for the lead_capture
+        await (supabase
+          .from('lead_captures') as any)
+          .update({
+            visit_count: currentVisitCount + 1,
+            ip_address: ipAddress,
+          })
+          .eq('id', leadCaptureId)
+
+        // Log the visit
+        await (supabase
+          .from('visit_logs') as any)
+          .insert({
+            lead_capture_id: leadCaptureId,
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            page_path: '/login',
+            referrer: referrer,
+          })
+      }
+    } catch (trackingError) {
+      console.error('Visit tracking error (non-fatal):', trackingError)
     }
 
     return NextResponse.json({
