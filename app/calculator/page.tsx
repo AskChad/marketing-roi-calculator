@@ -75,12 +75,21 @@ export default function CalculatorPage() {
   }
 
   const handleLoadScenario = (scenario: any) => {
+    console.log('Loading scenario:', scenario)
+
     // Reconstruct baseline metrics from session data
-    const sessionData = scenario.calculator_sessions
+    // Handle both array and object responses from Supabase
+    const sessionData = Array.isArray(scenario.calculator_sessions)
+      ? scenario.calculator_sessions[0]
+      : scenario.calculator_sessions
+
     if (!sessionData) {
-      console.error('No session data found for scenario')
+      console.error('No session data found for scenario:', scenario)
+      alert('Unable to load scenario: Missing session data')
       return
     }
+
+    console.log('Session data:', sessionData)
 
     const baselineMetrics: BaselineMetrics = {
       leads: sessionData.current_leads,
@@ -98,6 +107,9 @@ export default function CalculatorPage() {
       adjustedLeads: scenario.adjusted_leads || undefined,
       adjustedAdSpend: scenario.adjusted_ad_spend || undefined,
     }
+
+    console.log('Loaded baseline metrics:', baselineMetrics)
+    console.log('Loaded target scenario:', targetScenario)
 
     // Set the metrics and calculate results
     setCurrentMetrics(baselineMetrics)
