@@ -308,7 +308,7 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
                     )}
                     {visibleColumns.has('cpa') && (
                       <td className="px-4 py-3 text-sm font-semibold text-success-dark">
-                        {scenario.cpa_improvement_percent.toFixed(1)}%
+                        {scenario.cpa_improvement_percent.toFixed(1)}% ↓
                       </td>
                     )}
                     {visibleColumns.has('date') && (

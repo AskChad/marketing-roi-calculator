@@ -1,7 +1,31 @@
 'use client'
 
 import { BaselineMetrics, DualTimeframeResult, formatCurrency, formatPercent, formatNumber } from '@/lib/calculations'
-import { ArrowUp, ArrowDown, TrendingUp, DollarSign, Target, RefreshCw } from 'lucide-react'
+import { ArrowUp, ArrowDown, TrendingUp, DollarSign, Target, RefreshCw, TrendingDown } from 'lucide-react'
+
+// Helper to determine if a metric change is positive (good) or negative (bad)
+function getMetricImpact(metricType: 'decrease-good' | 'increase-good', change: number) {
+  const isIncrease = change > 0
+  const isDecrease = change < 0
+
+  if (metricType === 'decrease-good') {
+    // For CPA, CPL, Spend: decrease = good (green), increase = bad (red)
+    return {
+      isPositive: isDecrease,
+      color: isDecrease ? 'text-success-dark' : 'text-error',
+      bgColor: isDecrease ? 'bg-success/10 border-success' : 'bg-error/10 border-error',
+      Icon: isDecrease ? TrendingDown : ArrowUp,
+    }
+  } else {
+    // For Leads, Revenue, Sales: increase = good (green), decrease = bad (red)
+    return {
+      isPositive: isIncrease,
+      color: isIncrease ? 'text-success-dark' : 'text-error',
+      bgColor: isIncrease ? 'bg-success/10 border-success' : 'bg-error/10 border-error',
+      Icon: isIncrease ? ArrowUp : ArrowDown,
+    }
+  }
+}
 
 interface ResultsDisplayProps {
   results: DualTimeframeResult
@@ -73,17 +97,17 @@ export default function ResultsDisplay({ results, currentMetrics, onReset, initi
         </div>
 
         {/* CPA Improvement */}
-        <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 border border-brand-primary rounded-lg p-6">
+        <div className="bg-gradient-to-br from-success-light/20 to-success/10 border border-success rounded-lg p-6">
           <div className="flex items-center justify-between mb-3">
-            <Target className="h-8 w-8 text-brand-primary" />
-            <ArrowDown className="h-6 w-6 text-success-dark" />
+            <Target className="h-8 w-8 text-success-dark" />
+            <TrendingDown className="h-6 w-6 text-success-dark" />
           </div>
-          <p className="text-sm text-neutral-600 mb-1">CPA Improvement</p>
+          <p className="text-sm text-neutral-600 mb-1">CPA Reduction</p>
           <p className="text-3xl font-bold text-neutral-900 mb-1">
-            {formatPercent(primary.prospective.cpaImprovementPercent, 1)}
+            -{formatCurrency(primary.prospective.currentCPA - primary.prospective.newCPA)}
           </p>
           <p className="text-xs text-neutral-500">
-            {formatCurrency(primary.prospective.currentCPA)} → {formatCurrency(primary.prospective.newCPA)}
+            {formatCurrency(primary.prospective.currentCPA)} → {formatCurrency(primary.prospective.newCPA)} <span className="text-success-dark font-medium">({formatPercent(primary.prospective.cpaImprovementPercent, 1)} ↓)</span>
           </p>
         </div>
       </div>
@@ -157,12 +181,21 @@ interface ComparisonTableProps {
 }
 
 function ComparisonTable({ current, prospective, period }: ComparisonTableProps) {
+  const cplChange = prospective.newCPL - current.currentCPL
+  const cpaChange = prospective.newCPA - current.currentCPA
+  const cpaPercent = Math.abs((cpaChange / current.currentCPA) * 100)
+  const cplPercent = Math.abs((cplChange / current.currentCPL) * 100)
+  const leadsChange = prospective.leads - current.leads
+  const conversionChange = prospective.targetConversionRate - current.currentConversionRate
+
   const rows = [
     {
       metric: 'Leads',
       current: formatNumber(current.leads),
       improved: formatNumber(prospective.leads),
-      change: null,
+      change: leadsChange > 0 ? `+${formatNumber(leadsChange)}` : formatNumber(leadsChange),
+      positive: leadsChange > 0,
+      arrow: leadsChange > 0 ? '↑' : leadsChange < 0 ? '↓' : '',
     },
     {
       metric: 'Sales',
@@ -170,26 +203,33 @@ function ComparisonTable({ current, prospective, period }: ComparisonTableProps)
       improved: formatNumber(prospective.newSales),
       change: `+${formatNumber(prospective.salesIncrease)}`,
       positive: true,
+      arrow: '↑',
     },
     {
       metric: 'Conversion Rate',
       current: formatPercent(current.currentConversionRate, 2),
       improved: formatPercent(prospective.targetConversionRate, 2),
-      change: `+${formatPercent(prospective.targetConversionRate - current.currentConversionRate, 2)}`,
-      positive: true,
+      change: conversionChange > 0 ? `+${formatPercent(conversionChange, 2)}` : formatPercent(conversionChange, 2),
+      positive: conversionChange > 0,
+      arrow: conversionChange > 0 ? '↑' : '↓',
     },
     {
       metric: 'CPL',
       current: formatCurrency(current.currentCPL),
       improved: formatCurrency(prospective.newCPL),
-      change: null,
+      change: cplChange < 0 ?
+        `-${formatCurrency(Math.abs(cplChange))} (${formatPercent(cplPercent, 1)} ↓)` :
+        `+${formatCurrency(cplChange)} (${formatPercent(cplPercent, 1)} ↑)`,
+      positive: cplChange < 0,
+      arrow: cplChange < 0 ? '↓' : '↑',
     },
     {
       metric: 'CPA',
       current: formatCurrency(current.currentCPA),
       improved: formatCurrency(prospective.newCPA),
-      change: `-${formatPercent(prospective.cpaImprovementPercent, 1)}`,
+      change: `-${formatCurrency(Math.abs(cpaChange))} (${formatPercent(cpaPercent, 1)} ↓)`,
       positive: true,
+      arrow: '↓',
     },
     {
       metric: 'Revenue',
@@ -197,6 +237,7 @@ function ComparisonTable({ current, prospective, period }: ComparisonTableProps)
       improved: formatCurrency(prospective.newRevenue),
       change: `+${formatCurrency(prospective.revenueIncrease)}`,
       positive: true,
+      arrow: '↑',
     },
   ]
 
@@ -229,7 +270,7 @@ function ComparisonTable({ current, prospective, period }: ComparisonTableProps)
               </td>
               <td className="py-3 text-sm text-right font-mono">
                 {row.change ? (
-                  <span className={row.positive ? 'text-success-dark font-semibold' : 'text-neutral-600'}>
+                  <span className={row.positive ? 'text-success-dark font-semibold' : 'text-error font-semibold'}>
                     {row.change}
                   </span>
                 ) : (
