@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { getIPAddress, getUserAgent, getReferrer } from '@/lib/get-ip-address'
+import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -19,6 +19,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
+    // Capture IP and fetch geolocation
+    const ipAddress = getIPAddress(request)
+    const geoData = await getIPGeolocation(ipAddress)
+    const geoFields = extractGeolocationFields(geoData)
+
     // Step 1: Create lead_capture entry first (for non-admin users)
     // This ensures all registered users are in the leads table
     const { data: leadCapture, error: leadError } = await (supabase
@@ -29,8 +34,9 @@ export async function POST(request: NextRequest) {
         email: validatedData.email,
         phone: validatedData.phone,
         company_name: validatedData.companyName || 'Not Provided',
-        ip_address: getIPAddress(request),
+        ip_address: ipAddress,
         visit_count: 1,
+        ...geoFields,
       }])
       .select('id')
       .single()

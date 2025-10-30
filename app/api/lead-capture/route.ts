@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { Database } from '@/types/database'
 import { ghlClient } from '@/lib/ghl-client'
-import { getIPAddress, getUserAgent, getReferrer } from '@/lib/get-ip-address'
+import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 
 const leadCaptureSchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -46,7 +46,11 @@ export async function POST(request: NextRequest) {
     const userAgent = getUserAgent(request)
     const referrer = getReferrer(request)
 
-    // Insert lead capture with IP tracking
+    // Fetch geolocation data
+    const geoData = await getIPGeolocation(ipAddress)
+    const geoFields = extractGeolocationFields(geoData)
+
+    // Insert lead capture with IP tracking and geolocation
     const insertData: any = {
       first_name: validatedData.firstName,
       last_name: validatedData.lastName,
@@ -56,6 +60,7 @@ export async function POST(request: NextRequest) {
       website_url: validatedData.websiteUrl || null,
       ip_address: ipAddress,
       visit_count: 1,
+      ...geoFields,
     }
 
     const { data, error } = await supabase

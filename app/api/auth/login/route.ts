@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { getIPAddress, getUserAgent, getReferrer } from '@/lib/get-ip-address'
+import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -40,6 +40,10 @@ export async function POST(request: NextRequest) {
         const userAgent = getUserAgent(request)
         const referrer = getReferrer(request)
 
+        // Fetch geolocation data
+        const geoData = await getIPGeolocation(ipAddress)
+        const geoFields = extractGeolocationFields(geoData)
+
         const leadCaptureId = (userData as any).lead_capture_id
 
         // Get current visit count
@@ -51,12 +55,13 @@ export async function POST(request: NextRequest) {
 
         const currentVisitCount = leadData?.visit_count || 0
 
-        // Update visit count and IP for the lead_capture
+        // Update visit count, IP, and geolocation for the lead_capture
         await (supabase
           .from('lead_captures') as any)
           .update({
             visit_count: currentVisitCount + 1,
             ip_address: ipAddress,
+            ...geoFields,
           })
           .eq('id', leadCaptureId)
 
