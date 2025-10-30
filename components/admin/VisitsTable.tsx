@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Filter, Eye, EyeOff, X, Calendar } from 'lucide-react'
+import { Search, Filter, Eye, EyeOff, X, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 interface LeadCapture {
   tracking_id: string | null
@@ -49,6 +49,8 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
   const [dateTo, setDateTo] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [showColumnSelector, setShowColumnSelector] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(100)
 
   // Default columns: name, city, state, zip, IP, date
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
@@ -147,9 +149,28 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
     setSearchTerm('')
     setDateFrom('')
     setDateTo('')
+    setCurrentPage(1)
   }
 
   const hasActiveFilters = searchTerm || dateFrom || dateTo
+
+  // Reset to page 1 when filters change
+  const resetPage = () => setCurrentPage(1)
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredVisits.length / pageSize)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = startIndex + pageSize
+  const paginatedVisits = filteredVisits.slice(startIndex, endIndex)
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize)
+    setCurrentPage(1)
+  }
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+  }
 
   return (
     <div className="space-y-4">
@@ -270,9 +291,28 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
         </div>
       )}
 
-      {/* Results Count */}
-      <div className="text-sm text-neutral-600">
-        Showing {filteredVisits.length} of {visits.length} visits
+      {/* Results Count and Page Size Selector */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="text-sm text-neutral-600">
+          Showing {startIndex + 1}-{Math.min(endIndex, filteredVisits.length)} of {filteredVisits.length} visits
+          {filteredVisits.length !== visits.length && ` (filtered from ${visits.length} total)`}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-neutral-600">Rows per page:</label>
+          <select
+            value={pageSize}
+            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+            className="px-3 py-1 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={250}>250</option>
+            <option value={500}>500</option>
+            <option value={1000}>1000</option>
+          </select>
+        </div>
       </div>
 
       {/* Table */}
@@ -317,14 +357,14 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {filteredVisits.length === 0 ? (
+              {paginatedVisits.length === 0 ? (
                 <tr>
                   <td colSpan={visibleColumns.size} className="px-4 py-8 text-center text-neutral-500">
-                    No visits found matching your filters
+                    {filteredVisits.length === 0 ? 'No visits found matching your filters' : 'No visits on this page'}
                   </td>
                 </tr>
               ) : (
-                filteredVisits.map((visit) => (
+                paginatedVisits.map((visit) => (
                   <tr key={visit.id} className="hover:bg-neutral-50 transition">
                     {visibleColumns.has('name') && (
                       <td className="px-4 py-3 text-sm">
@@ -375,6 +415,83 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="text-sm text-neutral-600">
+            Page {currentPage} of {totalPages}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => goToPage(1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 border border-neutral-300 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              title="First page"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 border border-neutral-300 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              title="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              {/* Show page numbers */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => goToPage(pageNum)}
+                    className={`px-3 py-1 rounded-lg transition ${
+                      currentPage === pageNum
+                        ? 'bg-brand-primary text-white'
+                        : 'border border-neutral-300 hover:bg-neutral-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 border border-neutral-300 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              title="Next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => goToPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 border border-neutral-300 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              title="Last page"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
