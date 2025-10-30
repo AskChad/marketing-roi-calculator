@@ -68,7 +68,21 @@ export default async function AdminPage() {
 
   const { data: allScenarios } = await supabase
     .from('roi_scenarios')
-    .select('*, users(email)')
+    .select(`
+      *,
+      users(email),
+      calculator_sessions(
+        current_leads,
+        current_sales,
+        current_ad_spend,
+        current_revenue,
+        current_conversion_rate,
+        current_cpl,
+        current_cpa,
+        avg_revenue_per_sale,
+        time_period
+      )
+    `)
     .order('created_at', { ascending: false })
     .limit(1000)
 

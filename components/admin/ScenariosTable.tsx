@@ -7,16 +7,63 @@ interface Scenario {
   id: string
   scenario_name: string
   user_id: string
+  session_id: string
+  target_conversion_rate: number
+  adjusted_leads: number | null
+  adjusted_ad_spend: number | null
+  new_sales: number
+  new_cpl: number
+  new_cpa: number
+  new_revenue: number
   sales_increase: number
   revenue_increase: number
   cpa_improvement_percent: number
   created_at: string
+  updated_at: string
   users?: {
     email: string
   }
+  calculator_sessions?: {
+    time_period: string
+    current_leads: number
+    current_sales: number
+    current_ad_spend: number
+    current_revenue: number
+    current_conversion_rate: number
+    current_cpl: number
+    current_cpa: number
+    avg_revenue_per_sale: number
+  }
 }
 
-type ColumnKey = 'name' | 'user' | 'sales' | 'revenue' | 'cpa' | 'date'
+type ColumnKey =
+  | 'name'
+  | 'user'
+  | 'period'
+  | 'current_leads'
+  | 'current_sales'
+  | 'current_conv_rate'
+  | 'current_cpl'
+  | 'current_cpa'
+  | 'current_spend'
+  | 'current_revenue'
+  | 'target_conv_rate'
+  | 'adjusted_leads'
+  | 'adjusted_spend'
+  | 'new_sales'
+  | 'new_cpl'
+  | 'new_cpa'
+  | 'new_revenue'
+  | 'sales_increase'
+  | 'sales_increase_pct'
+  | 'revenue_increase'
+  | 'revenue_increase_pct'
+  | 'cpa_improvement'
+  | 'cpa_improvement_pct'
+  | 'cpl_improvement'
+  | 'cpl_improvement_pct'
+  | 'conv_rate_change'
+  | 'date'
 
 interface ScenariosTableProps {
   scenarios: Scenario[]
@@ -31,18 +78,39 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(100)
 
-  // Default columns: name, user, sales, revenue, CPA, date
+  // Default columns: name, user, current CPL, current CPA, new CPL, new CPA, sales increase, revenue increase, date
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
-    new Set(['name', 'user', 'sales', 'revenue', 'cpa', 'date'])
+    new Set(['name', 'user', 'current_cpl', 'current_cpa', 'new_cpl', 'new_cpa', 'sales_increase', 'revenue_increase', 'date'])
   )
 
   const columnDefinitions: Record<ColumnKey, { label: string, width: string }> = {
     name: { label: 'Scenario Name', width: 'w-48' },
-    user: { label: 'User', width: 'w-48' },
-    sales: { label: 'Sales Increase', width: 'w-32' },
-    revenue: { label: 'Revenue Increase', width: 'w-32' },
-    cpa: { label: 'CPA Improvement', width: 'w-32' },
-    date: { label: 'Created', width: 'w-40' },
+    user: { label: 'User', width: 'w-40' },
+    period: { label: 'Period', width: 'w-24' },
+    current_leads: { label: 'Current Leads', width: 'w-32' },
+    current_sales: { label: 'Current Sales', width: 'w-32' },
+    current_conv_rate: { label: 'Current Conv Rate', width: 'w-32' },
+    current_cpl: { label: 'Current CPL', width: 'w-28' },
+    current_cpa: { label: 'Current CPA', width: 'w-28' },
+    current_spend: { label: 'Current Spend', width: 'w-32' },
+    current_revenue: { label: 'Current Revenue', width: 'w-36' },
+    target_conv_rate: { label: 'Target Conv Rate', width: 'w-32' },
+    adjusted_leads: { label: 'Adjusted Leads', width: 'w-32' },
+    adjusted_spend: { label: 'Adjusted Spend', width: 'w-32' },
+    new_sales: { label: 'New Sales', width: 'w-28' },
+    new_cpl: { label: 'New CPL', width: 'w-28' },
+    new_cpa: { label: 'New CPA', width: 'w-28' },
+    new_revenue: { label: 'New Revenue', width: 'w-36' },
+    sales_increase: { label: 'Sales Increase', width: 'w-32' },
+    sales_increase_pct: { label: 'Sales Increase %', width: 'w-32' },
+    revenue_increase: { label: 'Revenue Increase', width: 'w-36' },
+    revenue_increase_pct: { label: 'Revenue Increase %', width: 'w-36' },
+    cpa_improvement: { label: 'CPA Improvement $', width: 'w-36' },
+    cpa_improvement_pct: { label: 'CPA Improvement %', width: 'w-36' },
+    cpl_improvement: { label: 'CPL Improvement $', width: 'w-36' },
+    cpl_improvement_pct: { label: 'CPL Improvement %', width: 'w-36' },
+    conv_rate_change: { label: 'Conv Rate Change', width: 'w-36' },
+    date: { label: 'Created', width: 'w-32' },
   }
 
   const toggleColumn = (column: ColumnKey) => {
@@ -58,7 +126,9 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
   // Filter and search logic
   const filteredScenarios = useMemo(() => {
     return scenarios.filter(scenario => {
-      // Search term filter
+      const session = scenario.calculator_sessions
+
+      // Search term filter - search across ALL fields
       if (searchTerm) {
         const search = searchTerm.toLowerCase()
         const matchesSearch =
@@ -66,7 +136,22 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
           (scenario.users?.email.toLowerCase().includes(search)) ||
           scenario.sales_increase.toString().includes(search) ||
           scenario.revenue_increase.toString().includes(search) ||
-          scenario.cpa_improvement_percent.toString().includes(search)
+          scenario.cpa_improvement_percent.toString().includes(search) ||
+          scenario.new_sales.toString().includes(search) ||
+          scenario.new_cpl.toString().includes(search) ||
+          scenario.new_cpa.toString().includes(search) ||
+          scenario.new_revenue.toString().includes(search) ||
+          scenario.target_conversion_rate.toString().includes(search) ||
+          (scenario.adjusted_leads?.toString().includes(search)) ||
+          (scenario.adjusted_ad_spend?.toString().includes(search)) ||
+          (session?.time_period.toLowerCase().includes(search)) ||
+          (session?.current_leads.toString().includes(search)) ||
+          (session?.current_sales.toString().includes(search)) ||
+          (session?.current_conversion_rate.toString().includes(search)) ||
+          (session?.current_cpl.toString().includes(search)) ||
+          (session?.current_cpa.toString().includes(search)) ||
+          (session?.current_ad_spend.toString().includes(search)) ||
+          (session?.current_revenue.toString().includes(search))
 
         if (!matchesSearch) return false
       }
@@ -123,7 +208,7 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search by name, user, sales, revenue, CPA..."
+              placeholder="Search by name, user, period, leads, sales, conversion rate, CPL, CPA, revenue..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-10 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
@@ -215,8 +300,8 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
       {/* Column Selector Panel */}
       {showColumnSelector && (
         <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-          <h4 className="font-semibold text-neutral-900 mb-3">Select Columns to Display</h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <h4 className="font-semibold text-neutral-900 mb-3">Select Columns to Display ({visibleColumns.size} of {Object.keys(columnDefinitions).length} selected)</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {(Object.keys(columnDefinitions) as ColumnKey[]).map((column) => (
               <label key={column} className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -268,14 +353,77 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
                 {visibleColumns.has('user') && (
                   <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">User</th>
                 )}
-                {visibleColumns.has('sales') && (
+                {visibleColumns.has('period') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Period</th>
+                )}
+                {visibleColumns.has('current_leads') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current Leads</th>
+                )}
+                {visibleColumns.has('current_sales') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current Sales</th>
+                )}
+                {visibleColumns.has('current_conv_rate') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current Conv Rate</th>
+                )}
+                {visibleColumns.has('current_cpl') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current CPL</th>
+                )}
+                {visibleColumns.has('current_cpa') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current CPA</th>
+                )}
+                {visibleColumns.has('current_spend') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current Spend</th>
+                )}
+                {visibleColumns.has('current_revenue') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Current Revenue</th>
+                )}
+                {visibleColumns.has('target_conv_rate') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Target Conv Rate</th>
+                )}
+                {visibleColumns.has('adjusted_leads') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Adjusted Leads</th>
+                )}
+                {visibleColumns.has('adjusted_spend') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Adjusted Spend</th>
+                )}
+                {visibleColumns.has('new_sales') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">New Sales</th>
+                )}
+                {visibleColumns.has('new_cpl') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">New CPL</th>
+                )}
+                {visibleColumns.has('new_cpa') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">New CPA</th>
+                )}
+                {visibleColumns.has('new_revenue') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">New Revenue</th>
+                )}
+                {visibleColumns.has('sales_increase') && (
                   <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Sales Increase</th>
                 )}
-                {visibleColumns.has('revenue') && (
+                {visibleColumns.has('sales_increase_pct') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Sales Increase %</th>
+                )}
+                {visibleColumns.has('revenue_increase') && (
                   <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Revenue Increase</th>
                 )}
-                {visibleColumns.has('cpa') && (
-                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">CPA Improvement</th>
+                {visibleColumns.has('revenue_increase_pct') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Revenue Increase %</th>
+                )}
+                {visibleColumns.has('cpa_improvement') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">CPA Improvement $</th>
+                )}
+                {visibleColumns.has('cpa_improvement_pct') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">CPA Improvement %</th>
+                )}
+                {visibleColumns.has('cpl_improvement') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">CPL Improvement $</th>
+                )}
+                {visibleColumns.has('cpl_improvement_pct') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">CPL Improvement %</th>
+                )}
+                {visibleColumns.has('conv_rate_change') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Conv Rate Change</th>
                 )}
                 {visibleColumns.has('date') && (
                   <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Created</th>
@@ -290,34 +438,104 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
                   </td>
                 </tr>
               ) : (
-                paginatedScenarios.map((scenario) => (
-                  <tr key={scenario.id} className="hover:bg-neutral-50 transition">
-                    {visibleColumns.has('name') && (
-                      <td className="px-4 py-3 text-sm font-medium text-neutral-900">{scenario.scenario_name}</td>
-                    )}
-                    {visibleColumns.has('user') && (
-                      <td className="px-4 py-3 text-sm text-neutral-600">{scenario.users?.email || 'Unknown'}</td>
-                    )}
-                    {visibleColumns.has('sales') && (
-                      <td className="px-4 py-3 text-sm text-neutral-900 font-semibold">+{scenario.sales_increase.toLocaleString()}</td>
-                    )}
-                    {visibleColumns.has('revenue') && (
-                      <td className="px-4 py-3 text-sm text-neutral-900 font-semibold">
-                        ${(scenario.revenue_increase / 1000).toFixed(1)}k
-                      </td>
-                    )}
-                    {visibleColumns.has('cpa') && (
-                      <td className="px-4 py-3 text-sm font-semibold text-success-dark">
-                        {scenario.cpa_improvement_percent.toFixed(1)}% ↓
-                      </td>
-                    )}
-                    {visibleColumns.has('date') && (
-                      <td className="px-4 py-3 text-sm text-neutral-600">
-                        {new Date(scenario.created_at).toLocaleDateString()}
-                      </td>
-                    )}
-                  </tr>
-                ))
+                paginatedScenarios.map((scenario) => {
+                  const session = scenario.calculator_sessions
+                  // Calculate additional metrics
+                  const salesIncreasePct = session ? (scenario.sales_increase / session.current_sales) * 100 : 0
+                  const revenueIncreasePct = session ? (scenario.revenue_increase / session.current_revenue) * 100 : 0
+                  const cpaImprovement = session ? session.current_cpa - scenario.new_cpa : 0
+                  const cplImprovement = session ? session.current_cpl - scenario.new_cpl : 0
+                  const cplImprovementPct = session ? ((session.current_cpl - scenario.new_cpl) / session.current_cpl) * 100 : 0
+                  const convRateChange = session ? scenario.target_conversion_rate - session.current_conversion_rate : 0
+
+                  return (
+                    <tr key={scenario.id} className="hover:bg-neutral-50 transition">
+                      {visibleColumns.has('name') && (
+                        <td className="px-4 py-3 text-sm font-medium text-neutral-900">{scenario.scenario_name}</td>
+                      )}
+                      {visibleColumns.has('user') && (
+                        <td className="px-4 py-3 text-sm text-neutral-600">{scenario.users?.email || 'Unknown'}</td>
+                      )}
+                      {visibleColumns.has('period') && (
+                        <td className="px-4 py-3 text-sm text-neutral-600 capitalize">{session?.time_period || 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_leads') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session?.current_leads.toLocaleString() || 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_sales') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session?.current_sales.toLocaleString() || 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_conv_rate') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session ? `${session.current_conversion_rate.toFixed(2)}%` : 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_cpl') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session ? `$${session.current_cpl.toFixed(2)}` : 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_cpa') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session ? `$${session.current_cpa.toFixed(2)}` : 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_spend') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session ? `$${session.current_ad_spend.toLocaleString()}` : 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('current_revenue') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{session ? `$${session.current_revenue.toLocaleString()}` : 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('target_conv_rate') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{scenario.target_conversion_rate.toFixed(2)}%</td>
+                      )}
+                      {visibleColumns.has('adjusted_leads') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{scenario.adjusted_leads?.toLocaleString() || 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('adjusted_spend') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{scenario.adjusted_ad_spend ? `$${scenario.adjusted_ad_spend.toLocaleString()}` : 'N/A'}</td>
+                      )}
+                      {visibleColumns.has('new_sales') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono font-semibold">{scenario.new_sales.toLocaleString()}</td>
+                      )}
+                      {visibleColumns.has('new_cpl') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono font-semibold">${scenario.new_cpl.toFixed(2)}</td>
+                      )}
+                      {visibleColumns.has('new_cpa') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono font-semibold">${scenario.new_cpa.toFixed(2)}</td>
+                      )}
+                      {visibleColumns.has('new_revenue') && (
+                        <td className="px-4 py-3 text-sm text-neutral-900 font-mono font-semibold">${scenario.new_revenue.toLocaleString()}</td>
+                      )}
+                      {visibleColumns.has('sales_increase') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">+{scenario.sales_increase.toLocaleString()}</td>
+                      )}
+                      {visibleColumns.has('sales_increase_pct') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">+{salesIncreasePct.toFixed(1)}% ↑</td>
+                      )}
+                      {visibleColumns.has('revenue_increase') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">+${scenario.revenue_increase.toLocaleString()}</td>
+                      )}
+                      {visibleColumns.has('revenue_increase_pct') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">+{revenueIncreasePct.toFixed(1)}% ↑</td>
+                      )}
+                      {visibleColumns.has('cpa_improvement') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">-${cpaImprovement.toFixed(2)} ↓</td>
+                      )}
+                      {visibleColumns.has('cpa_improvement_pct') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">{scenario.cpa_improvement_percent.toFixed(1)}% ↓</td>
+                      )}
+                      {visibleColumns.has('cpl_improvement') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">-${cplImprovement.toFixed(2)} ↓</td>
+                      )}
+                      {visibleColumns.has('cpl_improvement_pct') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">{cplImprovementPct.toFixed(1)}% ↓</td>
+                      )}
+                      {visibleColumns.has('conv_rate_change') && (
+                        <td className="px-4 py-3 text-sm text-success-dark font-mono font-semibold">+{convRateChange.toFixed(2)}% ↑</td>
+                      )}
+                      {visibleColumns.has('date') && (
+                        <td className="px-4 py-3 text-sm text-neutral-600">
+                          {new Date(scenario.created_at).toLocaleDateString()}
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
