@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import type { Database } from '@/types/database'
 import { ghlClient } from '@/lib/ghl-client'
+import { getIPAddress, getUserAgent, getReferrer } from '@/lib/get-ip-address'
 
 const leadCaptureSchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -40,14 +41,21 @@ export async function POST(request: NextRequest) {
     // Create Supabase client
     const supabase = await createClient()
 
-    // Insert lead capture
-    const insertData: Database['public']['Tables']['lead_captures']['Insert'] = {
+    // Capture IP address and tracking info
+    const ipAddress = getIPAddress(request)
+    const userAgent = getUserAgent(request)
+    const referrer = getReferrer(request)
+
+    // Insert lead capture with IP tracking
+    const insertData: any = {
       first_name: validatedData.firstName,
       last_name: validatedData.lastName,
       email: validatedData.email,
       phone: validatedData.phone || null,
       company_name: validatedData.companyName,
       website_url: validatedData.websiteUrl || null,
+      ip_address: ipAddress,
+      visit_count: 1,
     }
 
     const { data, error } = await supabase
@@ -62,6 +70,23 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to save lead information' },
         { status: 500 }
       )
+    }
+
+    const leadCaptureId = (data as any)?.id
+
+    // Log the visit
+    try {
+      await (supabase
+        .from('visit_logs') as any)
+        .insert({
+          lead_capture_id: leadCaptureId,
+          ip_address: ipAddress,
+          user_agent: userAgent,
+          page_path: '/lead-capture',
+          referrer: referrer,
+        })
+    } catch (visitLogError) {
+      console.error('Visit log error (non-fatal):', visitLogError)
     }
 
     // Sync to GHL (admin's account) if connected
