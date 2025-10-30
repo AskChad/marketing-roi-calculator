@@ -42,6 +42,25 @@ export default function ProspectiveScenarioForm({
     ? (currentMetrics.timePeriod === 'weekly' ? prospectiveResults.weekly.prospective : prospectiveResults.monthly.prospective)
     : null
 
+  // Format numbers: rounds thousands to nearest dollar, shows 10k-999.9k, and millions as M
+  const formatNumber = (num: number): string => {
+    const absNum = Math.abs(num)
+
+    if (absNum >= 1000000) {
+      // Millions: 4500000 → 4.5M
+      return (num / 1000000).toFixed(1) + 'M'
+    } else if (absNum >= 10000) {
+      // 10k to 999.9k: 45000 → 45k, 456789 → 456.8k
+      return (num / 1000).toFixed(1) + 'k'
+    } else if (absNum >= 1000) {
+      // 1000 to 9999: round to nearest dollar
+      return Math.round(num).toLocaleString()
+    } else {
+      // Less than 1000: show with 2 decimals
+      return num.toFixed(2)
+    }
+  }
+
   const {
     register,
     handleSubmit,
@@ -99,7 +118,7 @@ export default function ProspectiveScenarioForm({
         </div>
         <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
           <p className="text-xs text-neutral-600 mb-1">Current Revenue</p>
-          <p className="text-lg font-bold text-neutral-900">${currentRevenue}</p>
+          <p className="text-lg font-bold text-neutral-900">${formatNumber(currentMetrics.revenue)}</p>
         </div>
       </div>
 
@@ -112,11 +131,11 @@ export default function ProspectiveScenarioForm({
           </div>
           <div className="p-3 bg-success/10 border border-success rounded-lg">
             <p className="text-xs text-success-dark mb-1">Proposed CPL</p>
-            <p className="text-lg font-bold text-success-dark">${prospective.newCPL.toFixed(2)}</p>
+            <p className="text-lg font-bold text-success-dark">${formatNumber(prospective.newCPL)}</p>
           </div>
           <div className="p-3 bg-success/10 border border-success rounded-lg">
             <p className="text-xs text-success-dark mb-1">Proposed CPA</p>
-            <p className="text-lg font-bold text-success-dark">${prospective.newCPA.toFixed(2)}</p>
+            <p className="text-lg font-bold text-success-dark">${formatNumber(prospective.newCPA)}</p>
           </div>
           <div className="p-3 bg-success/10 border border-success rounded-lg">
             <p className="text-xs text-success-dark mb-1 flex items-center">
@@ -128,7 +147,7 @@ export default function ProspectiveScenarioForm({
               )}
             </p>
             <p className="text-lg font-bold text-success-dark">
-              {prospective.revenueIncrease >= 0 ? '+' : ''}${prospective.revenueIncrease.toFixed(2)}
+              {prospective.revenueIncrease >= 0 ? '+' : ''}${formatNumber(prospective.revenueIncrease)}
             </p>
           </div>
         </div>

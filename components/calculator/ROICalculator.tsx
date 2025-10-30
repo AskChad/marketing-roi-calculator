@@ -36,10 +36,11 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
     setResults(calculatedResults)
 
     // Auto-save for logged-in users
-    if (userId) {
+    if (userId && userId.length > 0) {
       try {
         const primary = currentMetrics.timePeriod === 'weekly' ? calculatedResults.weekly : calculatedResults.monthly
 
+        console.log('Saving scenario for user:', userId)
         const response = await fetch('/api/scenarios', {
           method: 'POST',
           headers: {
@@ -61,8 +62,14 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
           }),
         })
 
-        if (response.ok && onScenarioSaved) {
-          onScenarioSaved()
+        if (response.ok) {
+          console.log('Scenario saved successfully')
+          if (onScenarioSaved) {
+            onScenarioSaved()
+          }
+        } else {
+          const errorData = await response.json()
+          console.error('Failed to save scenario:', errorData)
         }
       } catch (error) {
         console.error('Auto-save error (non-fatal):', error)
