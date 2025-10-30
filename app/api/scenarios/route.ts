@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getBrandFromRequest } from '@/lib/brand/getBrand'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+
+    // Get brand from request
+    const brand = await getBrandFromRequest()
 
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -71,6 +75,7 @@ export async function POST(request: NextRequest) {
     const scenarioData = {
       user_id: user.id,
       session_id: session.id,
+      brand_id: brand.id,
       scenario_name: scenarioName as string,
       target_conversion_rate: Number(targetConversionRate),
       adjusted_leads: adjustedLeads ? Number(adjustedLeads) : null,

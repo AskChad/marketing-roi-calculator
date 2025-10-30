@@ -91,6 +91,12 @@ export default async function AdminPage() {
     .select('*')
     .in('setting_key', ['ghl_connected', 'ghl_location_id'])
 
+  // Fetch all brands
+  const { data: allBrands } = await supabase
+    .from('brands')
+    .select('*')
+    .order('created_at', { ascending: false })
+
   // Fetch calculator visits (up to 1000 most recent)
   const { data: visitsData } = await supabase
     .from('calculator_visits')
@@ -144,6 +150,7 @@ export default async function AdminPage() {
             scenarios={allScenarios || []}
             ghlSettings={ghlSettings || []}
             calculatorVisits={calculatorVisits || []}
+            brands={allBrands || []}
           />
         </div>
       </main>

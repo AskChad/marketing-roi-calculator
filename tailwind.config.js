@@ -9,14 +9,15 @@ module.exports = {
     extend: {
       colors: {
         // Professional 27-color palette from attack kit
+        // Brand colors use CSS variables for dynamic theming
         brand: {
-          primary: '#2563eb',
-          secondary: '#7c3aed',
-          accent: '#0891b2',
+          primary: 'var(--brand-primary, #2563eb)',
+          secondary: 'var(--brand-secondary, #7c3aed)',
+          accent: 'var(--brand-accent, #0891b2)',
         },
         success: {
           light: '#86efac',
-          DEFAULT: '#22c55e',
+          DEFAULT: 'var(--brand-success, #22c55e)',
           dark: '#15803d',
         },
         warning: {

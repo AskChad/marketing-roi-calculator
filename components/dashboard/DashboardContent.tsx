@@ -19,8 +19,8 @@ export default function DashboardContent({ scenarios, userId, isAdmin }: Dashboa
   const handleScenarioSaved = () => {
     // Trigger a refresh by incrementing the key
     setRefreshKey(prev => prev + 1)
-    // Force page reload to refresh scenarios from server
-    window.location.reload()
+    // Don't reload the page - let the calculator keep showing results
+    // The scenarios list will update on next page load
   }
 
   return (

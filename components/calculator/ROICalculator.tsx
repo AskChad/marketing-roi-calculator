@@ -79,7 +79,7 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
 
   return (
     <div className="w-full">
-      {!results ? (
+      {!results || (userId && userId.length > 0) ? (
         <div>
           {/* Two-Input Design */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -123,6 +123,7 @@ export default function ROICalculator({ userId, onScenarioSaved }: ROICalculator
                 <ProspectiveScenarioForm
                   currentMetrics={currentMetrics}
                   onSubmit={handleScenarioSubmit}
+                  prospectiveResults={results}
                 />
               ) : (
                 <div className="flex items-center justify-center h-64 text-neutral-400">

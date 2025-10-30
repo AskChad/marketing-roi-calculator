@@ -1,21 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick } from 'lucide-react'
+import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 import VisitsTable from './VisitsTable'
 import ScenariosTable from './ScenariosTable'
+import BrandsManagement from './BrandsManagement'
 
 interface AdminContentProps {
   users: any[]
   scenarios: any[]
   ghlSettings: any[]
   calculatorVisits: any[]
+  brands: any[]
 }
 
-type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits'
+type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands'
 
-export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits }: AdminContentProps) {
+export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits, brands }: AdminContentProps) {
   const [activeSection, setActiveSection] = useState<ManagementSection>('overview')
   const isGHLConnected = ghlSettings.find(s => s.setting_key === 'ghl_connected')?.setting_value === 'true'
 
@@ -65,7 +67,26 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
         {/* Management Selection Cards */}
         <div>
           <h2 className="text-2xl font-bold text-neutral-900 mb-6">What would you like to manage?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {/* Brands Management Card */}
+            <button
+              onClick={() => setActiveSection('brands')}
+              className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-400 rounded-2xl p-8 text-left hover:shadow-xl transition-all hover:scale-105 group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <Palette className="h-12 w-12 text-purple-600" />
+                <ChevronRight className="h-6 w-6 text-purple-600 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">Brand Management</h3>
+              <p className="text-neutral-600 mb-4">
+                Configure white-label brands with custom domains, colors, and branding
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-bold text-purple-600">{brands.length}</span>
+                <span className="text-sm text-neutral-600">Active Brands</span>
+              </div>
+            </button>
+
             {/* GoHighLevel Sync Card */}
             <button
               onClick={() => setActiveSection('ghl')}
@@ -235,6 +256,17 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             <h3 className="text-2xl font-bold text-neutral-900">Calculator Page Visits</h3>
           </div>
           <VisitsTable visits={calculatorVisits} />
+        </div>
+      )}
+
+      {/* Brands Management Section */}
+      {activeSection === 'brands' && (
+        <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
+          <div className="flex items-center mb-6">
+            <Palette className="h-6 w-6 text-purple-600 mr-3" />
+            <h3 className="text-2xl font-bold text-neutral-900">Brand Management</h3>
+          </div>
+          <BrandsManagement initialBrands={brands} />
         </div>
       )}
     </div>

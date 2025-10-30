@@ -3,8 +3,8 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { BaselineMetrics, TargetScenario } from '@/lib/calculations'
-import { TrendingUp } from 'lucide-react'
+import { BaselineMetrics, TargetScenario, DualTimeframeResult } from '@/lib/calculations'
+import { TrendingUp, ArrowUp, ArrowDown } from 'lucide-react'
 import { useState } from 'react'
 
 const scenarioSchema = z.object({
@@ -21,11 +21,13 @@ type ScenarioFormData = z.infer<typeof scenarioSchema>
 interface ProspectiveScenarioFormProps {
   currentMetrics: BaselineMetrics
   onSubmit: (scenario: TargetScenario) => void
+  prospectiveResults?: DualTimeframeResult | null
 }
 
 export default function ProspectiveScenarioForm({
   currentMetrics,
   onSubmit,
+  prospectiveResults = null,
 }: ProspectiveScenarioFormProps) {
   const [enableAdjustments, setEnableAdjustments] = useState(false)
   const [targetType, setTargetType] = useState<'conversionRate' | 'cpl' | 'cpa'>('conversionRate')
@@ -33,6 +35,12 @@ export default function ProspectiveScenarioForm({
   const currentCR = ((currentMetrics.sales / currentMetrics.leads) * 100).toFixed(2)
   const currentCPL = (currentMetrics.adSpend / currentMetrics.leads).toFixed(2)
   const currentCPA = (currentMetrics.adSpend / currentMetrics.sales).toFixed(2)
+  const currentRevenue = currentMetrics.revenue.toFixed(2)
+
+  // Extract prospective metrics based on input period
+  const prospective = prospectiveResults
+    ? (currentMetrics.timePeriod === 'weekly' ? prospectiveResults.weekly.prospective : prospectiveResults.monthly.prospective)
+    : null
 
   const {
     register,
@@ -76,7 +84,7 @@ export default function ProspectiveScenarioForm({
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Current Metrics Display */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
           <p className="text-xs text-neutral-600 mb-1">Current CR</p>
           <p className="text-lg font-bold text-neutral-900">{currentCR}%</p>
@@ -89,12 +97,47 @@ export default function ProspectiveScenarioForm({
           <p className="text-xs text-neutral-600 mb-1">Current CPA</p>
           <p className="text-lg font-bold text-neutral-900">${currentCPA}</p>
         </div>
+        <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+          <p className="text-xs text-neutral-600 mb-1">Current Revenue</p>
+          <p className="text-lg font-bold text-neutral-900">${currentRevenue}</p>
+        </div>
       </div>
+
+      {/* Proposed Metrics Display (Green Boxes) */}
+      {prospective && (
+        <div className="grid grid-cols-4 gap-3">
+          <div className="p-3 bg-success/10 border border-success rounded-lg">
+            <p className="text-xs text-success-dark mb-1">Proposed CR</p>
+            <p className="text-lg font-bold text-success-dark">{prospective.targetConversionRate.toFixed(2)}%</p>
+          </div>
+          <div className="p-3 bg-success/10 border border-success rounded-lg">
+            <p className="text-xs text-success-dark mb-1">Proposed CPL</p>
+            <p className="text-lg font-bold text-success-dark">${prospective.newCPL.toFixed(2)}</p>
+          </div>
+          <div className="p-3 bg-success/10 border border-success rounded-lg">
+            <p className="text-xs text-success-dark mb-1">Proposed CPA</p>
+            <p className="text-lg font-bold text-success-dark">${prospective.newCPA.toFixed(2)}</p>
+          </div>
+          <div className="p-3 bg-success/10 border border-success rounded-lg">
+            <p className="text-xs text-success-dark mb-1 flex items-center">
+              Revenue Change
+              {prospective.revenueIncrease >= 0 ? (
+                <ArrowUp className="h-3 w-3 ml-1" />
+              ) : (
+                <ArrowDown className="h-3 w-3 ml-1" />
+              )}
+            </p>
+            <p className="text-lg font-bold text-success-dark">
+              {prospective.revenueIncrease >= 0 ? '+' : ''}${prospective.revenueIncrease.toFixed(2)}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Scenario Name */}
       <div>
         <label htmlFor="scenarioName" className="block text-sm font-medium text-neutral-700 mb-2">
-          Scenario Name
+          Scenario Name <span className="text-danger">*</span>
         </label>
         <input
           type="text"

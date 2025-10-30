@@ -40,6 +40,11 @@ export interface Brand {
   support_email: string | null
   privacy_policy_url: string | null
   terms_of_service_url: string | null
+
+  // Domain verification
+  domain_verified?: boolean
+  domain_verification_checked_at?: string
+  dns_records?: any
 }
 
 const BrandContext = createContext<Brand | null>(null)

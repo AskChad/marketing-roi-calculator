@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateTrackingId, setTrackingCookie } from '@/lib/tracking'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
+import { getBrandFromRequest } from '@/lib/brand/getBrand'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+
+    // Get brand from request
+    const brand = await getBrandFromRequest()
 
     // Get or create tracking ID
     const { trackingId } = getOrCreateTrackingId(request)
@@ -28,6 +32,7 @@ export async function POST(request: NextRequest) {
       .insert([{
         tracking_id: trackingId,
         user_id: userId,
+        brand_id: brand.id,
         ip_address: ipAddress,
         user_agent: userAgent,
         referrer: referrer,

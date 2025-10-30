@@ -57,8 +57,8 @@ export async function POST(request: Request) {
   const body = await request.json()
 
   // Insert brand
-  const { data: brand, error } = await supabase
-    .from('brands')
+  const { data: brand, error } = await (supabase
+    .from('brands') as any)
     .insert([body])
     .select()
     .single()
@@ -94,8 +94,8 @@ export async function PUT(request: Request) {
   const { id, ...updates } = body
 
   // Update brand
-  const { data: brand, error } = await supabase
-    .from('brands')
+  const { data: brand, error } = await (supabase
+    .from('brands') as any)
     .update(updates)
     .eq('id', id)
     .select()

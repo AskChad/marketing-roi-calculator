@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 import { getTrackingId } from '@/lib/tracking'
+import { getBrandFromRequest } from '@/lib/brand/getBrand'
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -19,6 +20,9 @@ export async function POST(request: NextRequest) {
     const validatedData = registerSchema.parse(body)
 
     const supabase = await createClient()
+
+    // Get brand from request
+    const brand = await getBrandFromRequest()
 
     // Get tracking ID from cookie (if user was anonymous before)
     const trackingId = getTrackingId(request)
@@ -40,6 +44,7 @@ export async function POST(request: NextRequest) {
         company_name: validatedData.companyName || 'Not Provided',
         ip_address: ipAddress,
         tracking_id: trackingId,
+        brand_id: brand.id,
         visit_count: 1,
         ...geoFields,
       }])
@@ -103,6 +108,7 @@ export async function POST(request: NextRequest) {
         company_name: validatedData.companyName,
         password_hash: '', // Auth handles this
         is_admin: false,
+        brand_id: brand.id,  // Attribute user to signup brand
         lead_capture_id: leadCaptureId,  // Link to lead_captures
         tracking_id: trackingId,  // Preserve anonymous visitor tracking
       }] as any)

@@ -5,6 +5,7 @@ import type { Database } from '@/types/database'
 import { ghlClient } from '@/lib/ghl-client'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 import { getOrCreateTrackingId, setTrackingCookie } from '@/lib/tracking'
+import { getBrandFromRequest } from '@/lib/brand/getBrand'
 
 const leadCaptureSchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -42,6 +43,9 @@ export async function POST(request: NextRequest) {
     // Create Supabase client
     const supabase = await createClient()
 
+    // Get brand from request
+    const brand = await getBrandFromRequest()
+
     // Get or create tracking ID for anonymous visitor
     const { trackingId } = getOrCreateTrackingId(request)
 
@@ -64,6 +68,7 @@ export async function POST(request: NextRequest) {
       website_url: validatedData.websiteUrl || null,
       ip_address: ipAddress,
       tracking_id: trackingId,
+      brand_id: brand.id,
       visit_count: 1,
       ...geoFields,
     }
