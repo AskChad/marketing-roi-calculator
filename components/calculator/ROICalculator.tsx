@@ -58,45 +58,52 @@ export default function ROICalculator({ userId, userName, existingScenarios = []
     const calculatedResults = calculateDualTimeframeROI(currentMetrics, scenario)
     setResults(calculatedResults)
 
-    // Auto-save for logged-in users
-    if (userId) {
-      try {
-        const primary = currentMetrics.timePeriod === 'weekly' ? calculatedResults.weekly : calculatedResults.monthly
+    // Auto-save for all users (logged-in and anonymous)
+    try {
+      const primary = currentMetrics.timePeriod === 'weekly' ? calculatedResults.weekly : calculatedResults.monthly
 
-        console.log('Saving scenario for user:', userId)
-        const response = await fetch('/api/scenarios', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            scenarioName: autoScenarioName,
-            baselineMetrics: currentMetrics,
-            targetConversionRate: primary.prospective.targetConversionRate,
-            adjustedLeads: primary.prospective.leads !== currentMetrics.leads ? primary.prospective.leads : null,
-            adjustedAdSpend: primary.prospective.adSpend !== currentMetrics.adSpend ? primary.prospective.adSpend : null,
-            newSales: primary.prospective.newSales,
-            newCPL: primary.prospective.newCPL,
-            newCPA: primary.prospective.newCPA,
-            newRevenue: primary.prospective.newRevenue,
-            salesIncrease: primary.prospective.salesIncrease,
-            revenueIncrease: primary.prospective.revenueIncrease,
-            cpaImprovementPercent: primary.prospective.cpaImprovementPercent,
-          }),
-        })
-
-        if (response.ok) {
-          console.log('Scenario saved successfully')
-          if (onScenarioSaved) {
-            onScenarioSaved()
-          }
-        } else {
-          const errorData = await response.json()
-          console.error('Failed to save scenario:', errorData)
-        }
-      } catch (error) {
-        console.error('Auto-save error (non-fatal):', error)
+      // Get or create tracking ID for anonymous users
+      let trackingId = localStorage.getItem('roi_tracking_id')
+      if (!trackingId) {
+        trackingId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+        localStorage.setItem('roi_tracking_id', trackingId)
       }
+
+      console.log('Saving scenario:', { userId: userId || 'anonymous', trackingId })
+      const response = await fetch('/api/scenarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scenarioName: autoScenarioName,
+          baselineMetrics: currentMetrics,
+          targetConversionRate: primary.prospective.targetConversionRate,
+          adjustedLeads: primary.prospective.leads !== currentMetrics.leads ? primary.prospective.leads : null,
+          adjustedAdSpend: primary.prospective.adSpend !== currentMetrics.adSpend ? primary.prospective.adSpend : null,
+          newSales: primary.prospective.newSales,
+          newCPL: primary.prospective.newCPL,
+          newCPA: primary.prospective.newCPA,
+          newRevenue: primary.prospective.newRevenue,
+          salesIncrease: primary.prospective.salesIncrease,
+          revenueIncrease: primary.prospective.revenueIncrease,
+          cpaImprovementPercent: primary.prospective.cpaImprovementPercent,
+          trackingId: userId ? null : trackingId, // Only include tracking ID for anonymous users
+        }),
+      })
+
+      if (response.ok) {
+        console.log('Scenario saved successfully')
+        if (userId && onScenarioSaved) {
+          // Only call callback for logged-in users to refresh their dashboard
+          onScenarioSaved()
+        }
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to save scenario:', errorData)
+      }
+    } catch (error) {
+      console.error('Auto-save error (non-fatal):', error)
     }
   }
 

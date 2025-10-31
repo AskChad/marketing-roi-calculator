@@ -57,6 +57,12 @@ export default function ContactForm() {
         sessionStorage.setItem('leadCaptureId', result.leadCaptureId)
       }
 
+      // Sync tracking_id to localStorage if returned (for existing email reuse)
+      if (result.trackingId) {
+        localStorage.setItem('roi_tracking_id', result.trackingId)
+        console.log('Synced tracking_id from server:', result.trackingId)
+      }
+
       // Redirect to calculator
       router.push('/calculator')
     } catch (err) {

@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette } from 'lucide-react'
+import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3 } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 import VisitsTable from './VisitsTable'
 import ScenariosTable from './ScenariosTable'
 import BrandsManagement from './BrandsManagement'
+import ReportsView from './ReportsView'
 
 interface AdminContentProps {
   users: any[]
@@ -15,7 +16,7 @@ interface AdminContentProps {
   brands: any[]
 }
 
-type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands'
+type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands' | 'reports'
 
 export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits, brands }: AdminContentProps) {
   const [activeSection, setActiveSection] = useState<ManagementSection>('overview')
@@ -164,6 +165,27 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                 <span className="text-sm text-neutral-600">Recent Visits</span>
               </div>
             </button>
+
+            {/* Anonymous User Reports Card */}
+            <button
+              onClick={() => setActiveSection('reports')}
+              className="bg-gradient-to-br from-blue-100 to-indigo-100 border-2 border-blue-500 rounded-2xl p-8 text-left hover:shadow-xl transition-all hover:scale-105 group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <BarChart3 className="h-12 w-12 text-blue-600" />
+                <ChevronRight className="h-6 w-6 text-blue-600 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">User Journey Reports</h3>
+              <p className="text-neutral-600 mb-4">
+                Track anonymous visitor journeys from first visit to lead conversion
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-bold text-blue-600">
+                  {scenarios.filter(s => s.tracking_id).length}
+                </span>
+                <span className="text-sm text-neutral-600">Anonymous Scenarios</span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -267,6 +289,17 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             <h3 className="text-2xl font-bold text-neutral-900">Brand Management</h3>
           </div>
           <BrandsManagement initialBrands={brands} />
+        </div>
+      )}
+
+      {/* Anonymous User Reports Section */}
+      {activeSection === 'reports' && (
+        <div>
+          <div className="flex items-center mb-6">
+            <BarChart3 className="h-6 w-6 text-blue-600 mr-3" />
+            <h3 className="text-2xl font-bold text-neutral-900">User Journey Reports</h3>
+          </div>
+          <ReportsView />
         </div>
       )}
     </div>

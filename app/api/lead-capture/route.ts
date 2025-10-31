@@ -46,8 +46,25 @@ export async function POST(request: NextRequest) {
     // Get brand from request
     const brand = await getBrandFromRequest()
 
-    // Get or create tracking ID for anonymous visitor
-    const { trackingId } = getOrCreateTrackingId(request)
+    // Check if this email already exists in lead_captures
+    const { data: existingLead } = await (supabase
+      .from('lead_captures') as any)
+      .select('tracking_id')
+      .eq('email', validatedData.email)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    // Use existing tracking_id if email exists, otherwise create new one
+    let trackingId: string
+    if (existingLead && existingLead.tracking_id) {
+      trackingId = existingLead.tracking_id
+      console.log('Reusing existing tracking_id for email:', validatedData.email, trackingId)
+    } else {
+      const result = getOrCreateTrackingId(request)
+      trackingId = result.trackingId
+      console.log('Created new tracking_id for email:', validatedData.email, trackingId)
+    }
 
     // Capture IP address and tracking info
     const ipAddress = getIPAddress(request)
@@ -144,6 +161,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       leadCaptureId: (data as any)?.id || null,
+      trackingId: trackingId, // Return tracking_id so frontend can update localStorage
     })
 
     setTrackingCookie(response, trackingId)

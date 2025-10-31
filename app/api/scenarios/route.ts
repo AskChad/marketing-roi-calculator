@@ -9,15 +9,8 @@ export async function POST(request: NextRequest) {
     // Get brand from request
     const brand = await getBrandFromRequest()
 
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    // Get the authenticated user (optional for anonymous scenarios)
+    const { data: { user } } = await supabase.auth.getUser()
 
     const body = await request.json()
     const {
@@ -33,6 +26,7 @@ export async function POST(request: NextRequest) {
       salesIncrease,
       revenueIncrease,
       cpaImprovementPercent,
+      trackingId, // Optional tracking ID for anonymous users
     } = body
 
     // Validate required fields
@@ -45,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // First, create a calculator session to store baseline metrics
     const sessionData = {
-      user_id: user.id,
+      user_id: user?.id || null, // Allow null for anonymous users
       time_period: baselineMetrics.timePeriod,
       current_leads: Number(baselineMetrics.leads),
       current_sales: Number(baselineMetrics.sales),
@@ -73,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // Now create the scenario with reference to the session
     const scenarioData = {
-      user_id: user.id,
+      user_id: user?.id || null, // Allow null for anonymous users
       session_id: session.id,
       brand_id: brand.id,
       scenario_name: scenarioName as string,
@@ -87,6 +81,7 @@ export async function POST(request: NextRequest) {
       sales_increase: Number(salesIncrease),
       revenue_increase: Number(revenueIncrease),
       cpa_improvement_percent: Number(cpaImprovementPercent),
+      tracking_id: trackingId || null, // Store tracking ID for anonymous users
     }
 
     // Insert the scenario
