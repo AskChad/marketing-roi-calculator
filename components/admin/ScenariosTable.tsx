@@ -70,14 +70,39 @@ interface ScenariosTableProps {
 }
 
 interface NumericFilters {
-  minCPL?: number
-  maxCPL?: number
-  minCPA?: number
-  maxCPA?: number
-  minRevenue?: number
-  maxRevenue?: number
-  minSales?: number
-  maxSales?: number
+  // Current stats filters
+  minCurrentCPL?: number
+  maxCurrentCPL?: number
+  minCurrentCPA?: number
+  maxCurrentCPA?: number
+  minCurrentRevenue?: number
+  maxCurrentRevenue?: number
+  minCurrentSales?: number
+  maxCurrentSales?: number
+  minCurrentConvRate?: number
+  maxCurrentConvRate?: number
+  minCurrentLeads?: number
+  maxCurrentLeads?: number
+  minCurrentAdSpend?: number
+  maxCurrentAdSpend?: number
+
+  // Target/New stats filters
+  minNewCPL?: number
+  maxNewCPL?: number
+  minNewCPA?: number
+  maxNewCPA?: number
+  minNewRevenue?: number
+  maxNewRevenue?: number
+  minNewSales?: number
+  maxNewSales?: number
+  minTargetConvRate?: number
+  maxTargetConvRate?: number
+
+  // Increase filters
+  minRevenueIncrease?: number
+  maxRevenueIncrease?: number
+  minSalesIncrease?: number
+  maxSalesIncrease?: number
 }
 
 export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
@@ -185,21 +210,61 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
       if (Object.keys(numericFilters).length > 0) {
         if (!session) return false
 
-        // CPL filter
-        if (numericFilters.minCPL !== undefined && session.current_cpl < numericFilters.minCPL) return false
-        if (numericFilters.maxCPL !== undefined && session.current_cpl > numericFilters.maxCPL) return false
+        // Current CPL filter
+        if (numericFilters.minCurrentCPL !== undefined && session.current_cpl < numericFilters.minCurrentCPL) return false
+        if (numericFilters.maxCurrentCPL !== undefined && session.current_cpl > numericFilters.maxCurrentCPL) return false
 
-        // CPA filter
-        if (numericFilters.minCPA !== undefined && session.current_cpa < numericFilters.minCPA) return false
-        if (numericFilters.maxCPA !== undefined && session.current_cpa > numericFilters.maxCPA) return false
+        // New CPL filter
+        if (numericFilters.minNewCPL !== undefined && scenario.new_cpl < numericFilters.minNewCPL) return false
+        if (numericFilters.maxNewCPL !== undefined && scenario.new_cpl > numericFilters.maxNewCPL) return false
 
-        // Revenue filter
-        if (numericFilters.minRevenue !== undefined && scenario.revenue_increase < numericFilters.minRevenue) return false
-        if (numericFilters.maxRevenue !== undefined && scenario.revenue_increase > numericFilters.maxRevenue) return false
+        // Current CPA filter
+        if (numericFilters.minCurrentCPA !== undefined && session.current_cpa < numericFilters.minCurrentCPA) return false
+        if (numericFilters.maxCurrentCPA !== undefined && session.current_cpa > numericFilters.maxCurrentCPA) return false
 
-        // Sales filter
-        if (numericFilters.minSales !== undefined && scenario.sales_increase < numericFilters.minSales) return false
-        if (numericFilters.maxSales !== undefined && scenario.sales_increase > numericFilters.maxSales) return false
+        // New CPA filter
+        if (numericFilters.minNewCPA !== undefined && scenario.new_cpa < numericFilters.minNewCPA) return false
+        if (numericFilters.maxNewCPA !== undefined && scenario.new_cpa > numericFilters.maxNewCPA) return false
+
+        // Current Revenue filter
+        if (numericFilters.minCurrentRevenue !== undefined && session.current_revenue < numericFilters.minCurrentRevenue) return false
+        if (numericFilters.maxCurrentRevenue !== undefined && session.current_revenue > numericFilters.maxCurrentRevenue) return false
+
+        // New Revenue filter
+        if (numericFilters.minNewRevenue !== undefined && scenario.new_revenue < numericFilters.minNewRevenue) return false
+        if (numericFilters.maxNewRevenue !== undefined && scenario.new_revenue > numericFilters.maxNewRevenue) return false
+
+        // Revenue Increase filter
+        if (numericFilters.minRevenueIncrease !== undefined && scenario.revenue_increase < numericFilters.minRevenueIncrease) return false
+        if (numericFilters.maxRevenueIncrease !== undefined && scenario.revenue_increase > numericFilters.maxRevenueIncrease) return false
+
+        // Current Sales filter
+        if (numericFilters.minCurrentSales !== undefined && session.current_sales < numericFilters.minCurrentSales) return false
+        if (numericFilters.maxCurrentSales !== undefined && session.current_sales > numericFilters.maxCurrentSales) return false
+
+        // New Sales filter
+        if (numericFilters.minNewSales !== undefined && scenario.new_sales < numericFilters.minNewSales) return false
+        if (numericFilters.maxNewSales !== undefined && scenario.new_sales > numericFilters.maxNewSales) return false
+
+        // Sales Increase filter
+        if (numericFilters.minSalesIncrease !== undefined && scenario.sales_increase < numericFilters.minSalesIncrease) return false
+        if (numericFilters.maxSalesIncrease !== undefined && scenario.sales_increase > numericFilters.maxSalesIncrease) return false
+
+        // Current Leads filter
+        if (numericFilters.minCurrentLeads !== undefined && session.current_leads < numericFilters.minCurrentLeads) return false
+        if (numericFilters.maxCurrentLeads !== undefined && session.current_leads > numericFilters.maxCurrentLeads) return false
+
+        // Current Ad Spend filter
+        if (numericFilters.minCurrentAdSpend !== undefined && session.current_ad_spend < numericFilters.minCurrentAdSpend) return false
+        if (numericFilters.maxCurrentAdSpend !== undefined && session.current_ad_spend > numericFilters.maxCurrentAdSpend) return false
+
+        // Current Conversion Rate filter (close ratio)
+        if (numericFilters.minCurrentConvRate !== undefined && session.current_conversion_rate < numericFilters.minCurrentConvRate) return false
+        if (numericFilters.maxCurrentConvRate !== undefined && session.current_conversion_rate > numericFilters.maxCurrentConvRate) return false
+
+        // Target Conversion Rate filter (proposed close ratio)
+        if (numericFilters.minTargetConvRate !== undefined && scenario.target_conversion_rate < numericFilters.minTargetConvRate) return false
+        if (numericFilters.maxTargetConvRate !== undefined && scenario.target_conversion_rate > numericFilters.maxTargetConvRate) return false
       }
 
       return true
@@ -329,104 +394,354 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
             </div>
           </div>
 
-          {/* Numeric Filters */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">Numeric Filters</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* CPL Filters */}
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Min CPL ($)</label>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  step="0.01"
-                  value={numericFilters.minCPL ?? ''}
-                  onChange={(e) => updateNumericFilter('minCPL', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Max CPL ($)</label>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  step="0.01"
-                  value={numericFilters.maxCPL ?? ''}
-                  onChange={(e) => updateNumericFilter('maxCPL', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
-              </div>
+          {/* Numeric Filters - Organized by Current, Target, and Increases */}
+          <div className="space-y-4">
+            {/* Current Stats Filters */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center">
+                <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs mr-2">CURRENT</span>
+                Current Stats Filters
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current CPL ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="0.01"
+                    value={numericFilters.minCurrentCPL ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentCPL', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current CPL ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="0.01"
+                    value={numericFilters.maxCurrentCPL ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentCPL', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
 
-              {/* CPA Filters */}
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Min CPA ($)</label>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  step="0.01"
-                  value={numericFilters.minCPA ?? ''}
-                  onChange={(e) => updateNumericFilter('minCPA', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Max CPA ($)</label>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  step="0.01"
-                  value={numericFilters.maxCPA ?? ''}
-                  onChange={(e) => updateNumericFilter('maxCPA', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current CPA ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="0.01"
+                    value={numericFilters.minCurrentCPA ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentCPA', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current CPA ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="0.01"
+                    value={numericFilters.maxCurrentCPA ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentCPA', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
 
-              {/* Revenue Filters */}
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Min Revenue ($)</label>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  step="1"
-                  value={numericFilters.minRevenue ?? ''}
-                  onChange={(e) => updateNumericFilter('minRevenue', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Max Revenue ($)</label>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  step="1"
-                  value={numericFilters.maxRevenue ?? ''}
-                  onChange={(e) => updateNumericFilter('maxRevenue', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current Conv Rate (%)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="0.01"
+                    value={numericFilters.minCurrentConvRate ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentConvRate', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current Conv Rate (%)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="0.01"
+                    value={numericFilters.maxCurrentConvRate ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentConvRate', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
 
-              {/* Sales Filters */}
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Min Sales</label>
-                <input
-                  type="number"
-                  placeholder="Min"
-                  step="1"
-                  value={numericFilters.minSales ?? ''}
-                  onChange={(e) => updateNumericFilter('minSales', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current Revenue ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minCurrentRevenue ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentRevenue', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current Revenue ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxCurrentRevenue ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentRevenue', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current Sales</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minCurrentSales ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentSales', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current Sales</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxCurrentSales ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentSales', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current Leads</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minCurrentLeads ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentLeads', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current Leads</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxCurrentLeads ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentLeads', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Current Ad Spend ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minCurrentAdSpend ?? ''}
+                    onChange={(e) => updateNumericFilter('minCurrentAdSpend', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Current Ad Spend ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxCurrentAdSpend ?? ''}
+                    onChange={(e) => updateNumericFilter('maxCurrentAdSpend', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">Max Sales</label>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  step="1"
-                  value={numericFilters.maxSales ?? ''}
-                  onChange={(e) => updateNumericFilter('maxSales', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
-                />
+            </div>
+
+            {/* Target/Proposed Stats Filters */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center">
+                <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs mr-2">TARGET</span>
+                Target/Proposed Stats Filters
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min New CPL ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="0.01"
+                    value={numericFilters.minNewCPL ?? ''}
+                    onChange={(e) => updateNumericFilter('minNewCPL', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max New CPL ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="0.01"
+                    value={numericFilters.maxNewCPL ?? ''}
+                    onChange={(e) => updateNumericFilter('maxNewCPL', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min New CPA ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="0.01"
+                    value={numericFilters.minNewCPA ?? ''}
+                    onChange={(e) => updateNumericFilter('minNewCPA', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max New CPA ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="0.01"
+                    value={numericFilters.maxNewCPA ?? ''}
+                    onChange={(e) => updateNumericFilter('maxNewCPA', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Target Conv Rate (%)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="0.01"
+                    value={numericFilters.minTargetConvRate ?? ''}
+                    onChange={(e) => updateNumericFilter('minTargetConvRate', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Target Conv Rate (%)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="0.01"
+                    value={numericFilters.maxTargetConvRate ?? ''}
+                    onChange={(e) => updateNumericFilter('maxTargetConvRate', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min New Revenue ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minNewRevenue ?? ''}
+                    onChange={(e) => updateNumericFilter('minNewRevenue', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max New Revenue ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxNewRevenue ?? ''}
+                    onChange={(e) => updateNumericFilter('maxNewRevenue', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min New Sales</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minNewSales ?? ''}
+                    onChange={(e) => updateNumericFilter('minNewSales', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max New Sales</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxNewSales ?? ''}
+                    onChange={(e) => updateNumericFilter('maxNewSales', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Increase Stats Filters */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-800 mb-3 flex items-center">
+                <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs mr-2">INCREASES</span>
+                Increase Stats Filters
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Revenue Increase ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minRevenueIncrease ?? ''}
+                    onChange={(e) => updateNumericFilter('minRevenueIncrease', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Revenue Increase ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxRevenueIncrease ?? ''}
+                    onChange={(e) => updateNumericFilter('maxRevenueIncrease', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Min Sales Increase</label>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    step="1"
+                    value={numericFilters.minSalesIncrease ?? ''}
+                    onChange={(e) => updateNumericFilter('minSalesIncrease', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Max Sales Increase</label>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    step="1"
+                    value={numericFilters.maxSalesIncrease ?? ''}
+                    onChange={(e) => updateNumericFilter('maxSalesIncrease', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>

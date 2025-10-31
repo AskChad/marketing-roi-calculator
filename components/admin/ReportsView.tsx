@@ -31,6 +31,10 @@ interface NumericFilters {
   maxRevenue?: number
   minSales?: number
   maxSales?: number
+  minCurrentConvRate?: number
+  maxCurrentConvRate?: number
+  minTargetConvRate?: number
+  maxTargetConvRate?: number
 }
 
 export default function ReportsView() {
@@ -167,6 +171,14 @@ export default function ReportsView() {
           // Sales filter
           if (numericFilters.minSales !== undefined && scenario.sales_increase < numericFilters.minSales) return false
           if (numericFilters.maxSales !== undefined && scenario.sales_increase > numericFilters.maxSales) return false
+
+          // Current Conversion Rate filter (close ratio)
+          if (numericFilters.minCurrentConvRate !== undefined && session.current_conversion_rate < numericFilters.minCurrentConvRate) return false
+          if (numericFilters.maxCurrentConvRate !== undefined && session.current_conversion_rate > numericFilters.maxCurrentConvRate) return false
+
+          // Target Conversion Rate filter (proposed close ratio)
+          if (numericFilters.minTargetConvRate !== undefined && scenario.target_conversion_rate < numericFilters.minTargetConvRate) return false
+          if (numericFilters.maxTargetConvRate !== undefined && scenario.target_conversion_rate > numericFilters.maxTargetConvRate) return false
 
           return true
         })
@@ -356,6 +368,54 @@ export default function ReportsView() {
                   step="1"
                   value={numericFilters.maxSales ?? ''}
                   onChange={(e) => updateNumericFilter('maxSales', e.target.value)}
+                  placeholder="Max"
+                  className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Current Conversion Rate Filters (Close Ratio) */}
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Min Current Conv Rate (%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={numericFilters.minCurrentConvRate ?? ''}
+                  onChange={(e) => updateNumericFilter('minCurrentConvRate', e.target.value)}
+                  placeholder="Min"
+                  className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Max Current Conv Rate (%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={numericFilters.maxCurrentConvRate ?? ''}
+                  onChange={(e) => updateNumericFilter('maxCurrentConvRate', e.target.value)}
+                  placeholder="Max"
+                  className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* Target Conversion Rate Filters (Proposed Close Ratio) */}
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Min Target Conv Rate (%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={numericFilters.minTargetConvRate ?? ''}
+                  onChange={(e) => updateNumericFilter('minTargetConvRate', e.target.value)}
+                  placeholder="Min"
+                  className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Max Target Conv Rate (%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={numericFilters.maxTargetConvRate ?? ''}
+                  onChange={(e) => updateNumericFilter('maxTargetConvRate', e.target.value)}
                   placeholder="Max"
                   className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
                 />
