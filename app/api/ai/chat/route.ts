@@ -130,8 +130,16 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.text()
-      console.error('OpenAI API error:', errorData)
-      throw new Error('OpenAI API request failed')
+      console.error('OpenAI API error:', response.status, errorData)
+
+      // Parse error for better user feedback
+      try {
+        const errorJson = JSON.parse(errorData)
+        const errorMessage = errorJson.error?.message || errorJson.error || 'Unknown OpenAI error'
+        throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`)
+      } catch (parseError) {
+        throw new Error(`OpenAI API request failed with status ${response.status}`)
+      }
     }
 
     let data = await response.json()
@@ -205,7 +213,9 @@ export async function POST(request: NextRequest) {
       })
 
       if (!response.ok) {
-        throw new Error('OpenAI API request failed')
+        const errorData = await response.text()
+        console.error('OpenAI API error (iteration):', response.status, errorData)
+        throw new Error(`OpenAI API error: ${response.status}`)
       }
 
       data = await response.json()
@@ -254,6 +264,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.issues)
       return NextResponse.json(
         { error: 'Invalid request data', details: error.issues },
         { status: 400 }
@@ -261,8 +272,9 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('AI chat error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to process your request' },
+      { error: 'Failed to process your request', details: errorMessage },
       { status: 500 }
     )
   }

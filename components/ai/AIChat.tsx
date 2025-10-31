@@ -64,17 +64,22 @@ export default function AIChat({ userId, isAdmin, onClose }: AIChatProps) {
 
       const data = await response.json()
 
+      if (data.error) {
+        throw new Error(data.error + (data.details ? `: ${data.details}` : ''))
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: data.response },
       ])
     } catch (error) {
       console.error('AI chat error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: 'Sorry, I encountered an error. Please try again.',
+          content: `Sorry, I encountered an error: ${errorMessage}\n\nPlease check:\n1. OpenAI API key is configured in Admin → AI Settings\n2. Your API key has sufficient credits\n3. Try refreshing the page`,
         },
       ])
     } finally {
