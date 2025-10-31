@@ -212,19 +212,17 @@ export default function OpenAISettings() {
               onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
-              <option value="gpt-5">GPT-5 (Flagship - Highest Capability)</option>
-              <option value="gpt-5-mini">GPT-5-mini (Balanced Performance & Cost)</option>
-              <option value="gpt-5-nano">GPT-5-nano (Fastest & Most Efficient)</option>
-              <option value="gpt-4o">GPT-4o (Multimodal, Recommended)</option>
+              <option value="gpt-4o">GPT-4o (Recommended - Multimodal)</option>
               <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective)</option>
               <option value="gpt-4-turbo">GPT-4 Turbo</option>
               <option value="gpt-4">GPT-4</option>
+              <option value="o1-preview">o1-preview (Reasoning Model)</option>
+              <option value="o1-mini">o1-mini (Fast Reasoning)</option>
               <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>
             </select>
             <p className="text-xs text-neutral-500 mt-1">
-              <strong>GPT-5:</strong> Best for complex reasoning, coding, agentic tasks.
-              <strong>GPT-5-mini:</strong> Balanced cost/performance.
-              <strong>GPT-5-nano:</strong> Fastest & cheapest.
+              <strong>gpt-4o:</strong> Best for most use cases. Fast, smart, multimodal.
+              <strong>o1-preview/o1-mini:</strong> Advanced reasoning models.
             </p>
           </div>
 
