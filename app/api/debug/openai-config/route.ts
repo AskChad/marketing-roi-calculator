@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    const debug = {
+    const debug: any = {
       timestamp: new Date().toISOString(),
       auth: {
         authenticated: !!user,
@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
         email: user?.email || null,
         authError: authError?.message || null
       },
-      adminSettings: null as any,
-      userSettings: null as any,
+      adminSettings: null,
+      userSettings: null,
       envVars: {
         hasOpenAIKey: !!process.env.OPENAI_API_KEY,
         openAIKeyLength: process.env.OPENAI_API_KEY?.length || 0
