@@ -20,7 +20,14 @@ export default function OpenAISettings() {
     system_instructions: '',
   })
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    api_key: string
+    api_type: string
+    model: string
+    temperature: number
+    max_tokens: number | null
+    system_instructions: string
+  }>({
     api_key: '',
     api_type: 'chat', // 'chat' or 'responses'
     model: 'gpt-4o',
@@ -288,19 +295,23 @@ export default function OpenAISettings() {
           {/* Max Tokens */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Max Tokens
+              Max Tokens (optional)
             </label>
             <input
               type="number"
               min="100"
-              max="4000"
+              max="128000"
               step="100"
-              value={formData.max_tokens}
-              onChange={(e) => setFormData(prev => ({ ...prev, max_tokens: parseInt(e.target.value) }))}
+              value={formData.max_tokens || ''}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                max_tokens: e.target.value ? parseInt(e.target.value) : null
+              }))}
+              placeholder="Leave empty for model maximum"
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
             <p className="text-xs text-neutral-500 mt-1">
-              Higher values allow longer responses but cost more
+              Leave empty to use the model's maximum token count. Lower values may reduce cost but limit response length.
             </p>
           </div>
         </div>

@@ -7,7 +7,7 @@ const openaiSettingsSchema = z.object({
   api_type: z.enum(['chat', 'responses']).optional(),
   model: z.string().min(1).optional(),
   temperature: z.number().min(0).max(2).optional(),
-  max_tokens: z.number().min(100).max(4000).optional(),
+  max_tokens: z.number().min(100).max(128000).optional().nullable(), // Allow null to use model max
   system_instructions: z.string().min(1).optional(),
 })
 
@@ -154,7 +154,7 @@ export async function PATCH(request: NextRequest) {
     if (validatedData.max_tokens !== undefined) {
       updates.push({
         setting_key: 'openai_max_tokens',
-        setting_value: validatedData.max_tokens.toString(),
+        setting_value: validatedData.max_tokens !== null ? validatedData.max_tokens.toString() : null,
       })
     }
 

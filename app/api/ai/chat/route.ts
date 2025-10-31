@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     let apiType = 'chat' // 'chat' or 'responses'
     let model = 'gpt-4o' // Default to latest model
     let temperature = 0.7
-    let maxTokens = 2000
+    let maxTokens: number | null = 2000 // null = use model's max
     let systemInstructions = ''
 
     // Check if user has personal API key
@@ -61,7 +61,10 @@ export async function POST(request: NextRequest) {
         if (s.setting_key === 'openai_api_type' && s.setting_value) apiType = s.setting_value
         if (s.setting_key === 'openai_model' && s.setting_value) model = s.setting_value
         if (s.setting_key === 'openai_temperature' && s.setting_value) temperature = parseFloat(s.setting_value)
-        if (s.setting_key === 'openai_max_tokens' && s.setting_value) maxTokens = parseInt(s.setting_value)
+        if (s.setting_key === 'openai_max_tokens') {
+          // If setting_value is null or empty, set maxTokens to null (use model max)
+          maxTokens = s.setting_value ? parseInt(s.setting_value) : null
+        }
         if (s.setting_key === 'openai_system_instructions' && s.setting_value) systemInstructions = s.setting_value
       })
 
@@ -154,7 +157,7 @@ export async function POST(request: NextRequest) {
         tool_choice: 'auto',
         parallel_tool_calls: true, // Allow OpenAI to call multiple tools simultaneously
         temperature,
-        max_tokens: maxTokens,
+        ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
       }),
     })
 
@@ -240,7 +243,7 @@ export async function POST(request: NextRequest) {
           tool_choice: 'auto',
           parallel_tool_calls: true, // Allow OpenAI to call multiple tools simultaneously
           temperature,
-          max_tokens: maxTokens,
+          ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
         }),
       })
 
@@ -319,7 +322,7 @@ async function handleResponsesAPI(params: {
   apiKey: string
   model: string
   temperature: number
-  maxTokens: number
+  maxTokens: number | null
   fullSystemMessage: string
   validatedData: any
   availableFunctions: any[]
@@ -376,7 +379,7 @@ async function handleResponsesAPI(params: {
       tool_choice: 'auto',
       parallel_tool_calls: true, // Allow multiple tool calls
       temperature,
-      max_tokens: maxTokens,
+      ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
     }),
   })
 
@@ -462,7 +465,7 @@ async function handleResponsesAPI(params: {
         tool_choice: 'auto',
         parallel_tool_calls: true,
         temperature,
-        max_tokens: maxTokens,
+        ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
       }),
     })
 
