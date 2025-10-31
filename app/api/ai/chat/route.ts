@@ -69,11 +69,22 @@ export async function POST(request: NextRequest) {
     }
 
     if (!apiKey) {
+      console.error('No OpenAI API key configured')
       return NextResponse.json(
-        { response: "AI features are not configured. Please add your OpenAI API key in settings or contact your platform administrator." },
-        { status: 200 }
+        { error: "AI features are not configured. Please add your OpenAI API key in Admin → AI Settings." },
+        { status: 500 }
       )
     }
+
+    console.log('AI Chat Request:', {
+      userId: validatedData.userId,
+      isAdmin: validatedData.isAdmin,
+      model,
+      temperature,
+      maxTokens,
+      hasApiKey: !!apiKey,
+      apiKeySource: userSettingsData?.api_key ? 'user' : 'platform'
+    })
 
     // Build system message
     const baseSystemMessage = validatedData.isAdmin
