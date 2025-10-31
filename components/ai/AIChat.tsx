@@ -45,6 +45,8 @@ export default function AIChat({ userId, isAdmin, onClose }: AIChatProps) {
     setIsLoading(true)
 
     try {
+      console.log('Sending AI chat request:', { userId, isAdmin, messageLength: userMessage.length })
+
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
@@ -58,8 +60,12 @@ export default function AIChat({ userId, isAdmin, onClose }: AIChatProps) {
         }),
       })
 
+      console.log('AI chat response status:', response.status, response.statusText)
+
       if (!response.ok) {
-        throw new Error('Failed to get AI response')
+        const errorText = await response.text()
+        console.error('AI chat error response:', errorText)
+        throw new Error(`Failed to get AI response (${response.status}): ${errorText}`)
       }
 
       const data = await response.json()
