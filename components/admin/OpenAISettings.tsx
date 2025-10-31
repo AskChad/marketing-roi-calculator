@@ -212,7 +212,8 @@ export default function OpenAISettings() {
               onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
-              <option value="gpt-4o">GPT-4o (Latest, Recommended)</option>
+              <option value="o3-mini">o3-mini (GPT-5, Latest Reasoning Model)</option>
+              <option value="gpt-4o">GPT-4o (Multimodal, Recommended)</option>
               <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective)</option>
               <option value="gpt-4-turbo">GPT-4 Turbo</option>
               <option value="gpt-4">GPT-4</option>
