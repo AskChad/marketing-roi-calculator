@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3 } from 'lucide-react'
+import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3, Bot } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 import VisitsTable from './VisitsTable'
 import ScenariosTable from './ScenariosTable'
 import BrandsManagement from './BrandsManagement'
 import ReportsView from './ReportsView'
+import OpenAISettings from './OpenAISettings'
 
 interface AdminContentProps {
   users: any[]
@@ -16,7 +17,7 @@ interface AdminContentProps {
   brands: any[]
 }
 
-type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands' | 'reports'
+type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands' | 'reports' | 'openai'
 
 export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits, brands }: AdminContentProps) {
   const [activeSection, setActiveSection] = useState<ManagementSection>('overview')
@@ -186,6 +187,26 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                 <span className="text-sm text-neutral-600">Anonymous Scenarios</span>
               </div>
             </button>
+
+            {/* OpenAI Settings Card */}
+            <button
+              onClick={() => setActiveSection('openai')}
+              className="bg-gradient-to-br from-emerald-100 to-teal-100 border-2 border-emerald-500 rounded-2xl p-8 text-left hover:shadow-xl transition-all hover:scale-105 group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <Bot className="h-12 w-12 text-emerald-600" />
+                <ChevronRight className="h-6 w-6 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">AI Settings</h3>
+              <p className="text-neutral-600 mb-4">
+                Configure OpenAI API key, model, and system instructions for AI chat
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-emerald-600">
+                  GPT-4 Function Calling
+                </span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -300,6 +321,17 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             <h3 className="text-2xl font-bold text-neutral-900">User Journey Reports</h3>
           </div>
           <ReportsView />
+        </div>
+      )}
+
+      {/* OpenAI Settings Section */}
+      {activeSection === 'openai' && (
+        <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
+          <div className="flex items-center mb-6">
+            <Bot className="h-6 w-6 text-emerald-600 mr-3" />
+            <h3 className="text-2xl font-bold text-neutral-900">OpenAI Configuration</h3>
+          </div>
+          <OpenAISettings />
         </div>
       )}
     </div>
