@@ -47,7 +47,8 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [ipFilter, setIpFilter] = useState('')
+  const [showFilters, setShowFilters] = useState(true)
   const [showColumnSelector, setShowColumnSelector] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(100)
@@ -110,7 +111,7 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
   // Filter and search logic
   const filteredVisits = useMemo(() => {
     return visits.filter(visit => {
-      // Search term filter (searches across all fields)
+      // Text search filter (name, email, phone, company, city, state, zip, country - NO IP)
       if (searchTerm) {
         const search = searchTerm.toLowerCase()
         const matchesSearch =
@@ -118,13 +119,18 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
           getEmail(visit).toLowerCase().includes(search) ||
           getPhone(visit).toLowerCase().includes(search) ||
           getCompany(visit).toLowerCase().includes(search) ||
-          (visit.ip_address?.toLowerCase().includes(search)) ||
           (visit.city?.toLowerCase().includes(search)) ||
           (visit.region?.toLowerCase().includes(search)) ||
           (visit.zipcode?.toLowerCase().includes(search)) ||
           (visit.country?.toLowerCase().includes(search))
 
         if (!matchesSearch) return false
+      }
+
+      // IP address filter (separate from text search)
+      if (ipFilter) {
+        const ipSearch = ipFilter.toLowerCase()
+        if (!visit.ip_address?.toLowerCase().includes(ipSearch)) return false
       }
 
       // Date range filter
@@ -143,16 +149,17 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
 
       return true
     })
-  }, [visits, searchTerm, dateFrom, dateTo])
+  }, [visits, searchTerm, ipFilter, dateFrom, dateTo])
 
   const clearFilters = () => {
     setSearchTerm('')
+    setIpFilter('')
     setDateFrom('')
     setDateTo('')
     setCurrentPage(1)
   }
 
-  const hasActiveFilters = searchTerm || dateFrom || dateTo
+  const hasActiveFilters = searchTerm || ipFilter || dateFrom || dateTo
 
   // Reset to page 1 when filters change
   const resetPage = () => setCurrentPage(1)
@@ -182,7 +189,7 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search by name, email, IP, city, state, zip..."
+              placeholder="Search text fields (name, email, company, city, state, zip, country)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-10 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
@@ -225,49 +232,76 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+        <div className="bg-white border border-neutral-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="font-semibold text-neutral-900">Date Range Filter</h4>
+            <h4 className="text-lg font-semibold text-neutral-900">Filters</h4>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
                 className="text-sm text-brand-primary hover:text-blue-700 flex items-center gap-1"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4 mr-1" />
                 Clear All
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="space-y-4">
+            {/* IP Address Filter */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                From Date
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                IP Address Filter
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Filter by IP address..."
+                value={ipFilter}
+                onChange={(e) => setIpFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+              />
             </div>
+
+            {/* Date Range Filters */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                To Date
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Date Range
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none"
+                  />
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Filter Results Count */}
+          {hasActiveFilters && (
+            <div className="mt-4 pt-4 border-t border-neutral-200">
+              <p className="text-sm text-neutral-600">
+                Showing <span className="font-semibold text-brand-primary">{filteredVisits.length}</span> of{' '}
+                <span className="font-semibold">{visits.length}</span> visits
+              </p>
+            </div>
+          )}
         </div>
       )}
 
