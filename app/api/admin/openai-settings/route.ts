@@ -158,16 +158,26 @@ export async function PATCH(request: NextRequest) {
 
     // Update each setting
     for (const update of updates) {
+      const updateData: any = {
+        setting_value: update.setting_value,
+        // Mark as not encrypted for admin_settings (we use Token Manager for user tokens)
+        encrypted: false
+      }
+
       const { error } = await supabase
         .from('admin_settings')
         // @ts-ignore - Type mismatch due to table not existing yet
-        .update({ setting_value: update.setting_value })
-        .eq('setting_key', update.setting_key)
+        .upsert({
+          setting_key: update.setting_key,
+          ...updateData
+        }, {
+          onConflict: 'setting_key'
+        })
 
       if (error) {
         console.error(`Error updating ${update.setting_key}:`, error)
         return NextResponse.json(
-          { error: `Failed to update ${update.setting_key}` },
+          { error: `Failed to update ${update.setting_key}: ${error.message}` },
           { status: 500 }
         )
       }
