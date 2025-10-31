@@ -147,9 +147,11 @@ export async function POST(request: NextRequest) {
       try {
         const errorJson = JSON.parse(errorData)
         const errorMessage = errorJson.error?.message || errorJson.error || 'Unknown OpenAI error'
+        console.error('Full OpenAI error:', errorJson)
         throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`)
       } catch (parseError) {
-        throw new Error(`OpenAI API request failed with status ${response.status}`)
+        console.error('Could not parse OpenAI error:', errorData)
+        throw new Error(`OpenAI API request failed with status ${response.status}: ${errorData}`)
       }
     }
 

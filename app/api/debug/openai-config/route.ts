@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
         settings: adminSettings?.map((s: any) => ({
           key: s.setting_key,
           hasValue: !!s.setting_value,
+          value: s.setting_key === 'openai_model' ? s.setting_value : undefined, // Show model name
           valueLength: s.setting_value?.length || 0,
           encrypted: s.encrypted
         })) || [],
