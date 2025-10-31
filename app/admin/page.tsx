@@ -52,7 +52,7 @@ export default async function AdminPage() {
   // Check if user is admin
   const { data: userData } = await supabase
     .from('users')
-    .select('is_admin')
+    .select('*')
     .eq('id', user.id)
     .single()
 
@@ -130,7 +130,7 @@ export default async function AdminPage() {
       <Header
         showLogin={false}
         showDashboard={true}
-        userName="Admin"
+        userName={(userData as any)?.first_name || user.email?.split('@')[0] || 'Admin'}
         isAdmin={true}
       />
 

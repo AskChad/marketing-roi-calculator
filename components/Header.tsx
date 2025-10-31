@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, Settings } from 'lucide-react'
 
@@ -11,6 +12,26 @@ interface HeaderProps {
 }
 
 export default function Header({ showLogin = true, showDashboard = false, userName, isAdmin = false }: HeaderProps) {
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+
+      if (response.ok) {
+        router.push('/')
+        router.refresh()
+      } else {
+        alert('Logout failed. Please try again.')
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      alert('Logout failed. Please try again.')
+    }
+  }
+
   return (
     <header className="bg-white border-b border-neutral-200">
       <div className="container mx-auto px-4 py-4">
@@ -47,7 +68,10 @@ export default function Header({ showLogin = true, showDashboard = false, userNa
             {userName ? (
               <div className="flex items-center space-x-3">
                 <span className="text-neutral-700">Hi, {userName}</span>
-                <button className="text-neutral-600 hover:text-brand-primary transition">
+                <button
+                  onClick={handleLogout}
+                  className="text-neutral-600 hover:text-brand-primary transition"
+                >
                   Logout
                 </button>
               </div>
