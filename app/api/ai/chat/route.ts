@@ -9,9 +9,10 @@ const chatSchema = z.object({
   userId: z.string(),
   isAdmin: z.boolean(),
   conversationHistory: z.array(z.object({
-    role: z.enum(['user', 'assistant', 'function']),
+    role: z.enum(['user', 'assistant', 'tool', 'system']),
     content: z.string(),
     name: z.string().optional(),
+    tool_call_id: z.string().optional(),
   })),
 })
 
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
         role: msg.role,
         content: msg.content,
         ...(msg.name && { name: msg.name }),
+        ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
       })),
       {
         role: 'user',
@@ -114,9 +116,13 @@ export async function POST(request: NextRequest) {
         messages,
         tools: availableFunctions.map(fn => ({
           type: 'function',
-          function: fn,
+          function: {
+            ...fn,
+            strict: true, // Enable Structured Outputs for guaranteed JSON Schema compliance
+          },
         })),
         tool_choice: 'auto',
+        parallel_tool_calls: true, // Allow OpenAI to call multiple tools simultaneously
         temperature,
         max_tokens: maxTokens,
       }),
@@ -186,9 +192,13 @@ export async function POST(request: NextRequest) {
           messages,
           tools: availableFunctions.map(fn => ({
             type: 'function',
-            function: fn,
+            function: {
+              ...fn,
+              strict: true, // Enable Structured Outputs for guaranteed JSON Schema compliance
+            },
           })),
           tool_choice: 'auto',
+          parallel_tool_calls: true, // Allow OpenAI to call multiple tools simultaneously
           temperature,
           max_tokens: maxTokens,
         }),
