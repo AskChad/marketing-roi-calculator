@@ -14,7 +14,7 @@ export default function OpenAISettings() {
     api_key: '',
     api_key_masked: '',
     api_key_exists: false,
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-4o',
     temperature: 0.7,
     max_tokens: 2000,
     system_instructions: '',
@@ -22,7 +22,7 @@ export default function OpenAISettings() {
 
   const [formData, setFormData] = useState({
     api_key: '',
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-4o',
     temperature: 0.7,
     max_tokens: 2000,
     system_instructions: '',
@@ -48,7 +48,7 @@ export default function OpenAISettings() {
         setSettings(data.settings)
         setFormData({
           api_key: '',
-          model: data.settings.model || 'gpt-4-turbo-preview',
+          model: data.settings.model || 'gpt-4o',
           temperature: data.settings.temperature || 0.7,
           max_tokens: data.settings.max_tokens || 2000,
           system_instructions: data.settings.system_instructions || '',
@@ -212,9 +212,11 @@ export default function OpenAISettings() {
               onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
-              <option value="gpt-4-turbo-preview">GPT-4 Turbo (Recommended)</option>
+              <option value="gpt-4o">GPT-4o (Latest, Recommended)</option>
+              <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective)</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
               <option value="gpt-4">GPT-4</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster, Lower Cost)</option>
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>
             </select>
           </div>
 

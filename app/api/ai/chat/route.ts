@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Get OpenAI configuration
     let apiKey: string | null = null
-    let model = 'gpt-4-turbo-preview'
+    let model = 'gpt-4o' // Default to latest model
     let temperature = 0.7
     let maxTokens = 2000
     let systemInstructions = ''
