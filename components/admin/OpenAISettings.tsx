@@ -22,6 +22,7 @@ export default function OpenAISettings() {
 
   const [formData, setFormData] = useState({
     api_key: '',
+    api_type: 'chat', // 'chat' or 'responses'
     model: 'gpt-4o',
     temperature: 0.7,
     max_tokens: 2000,
@@ -48,6 +49,7 @@ export default function OpenAISettings() {
         setSettings(data.settings)
         setFormData({
           api_key: '',
+          api_type: data.settings.api_type || 'chat',
           model: data.settings.model || 'gpt-4o',
           temperature: data.settings.temperature || 0.7,
           max_tokens: data.settings.max_tokens || 2000,
@@ -69,6 +71,7 @@ export default function OpenAISettings() {
       setErrorMessage('')
 
       const updateData: any = {
+        api_type: formData.api_type,
         model: formData.model,
         temperature: formData.temperature,
         max_tokens: formData.max_tokens,
@@ -202,6 +205,25 @@ export default function OpenAISettings() {
         </div>
 
         <div className="space-y-4">
+          {/* API Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              API Type
+            </label>
+            <select
+              value={formData.api_type}
+              onChange={(e) => setFormData(prev => ({ ...prev, api_type: e.target.value }))}
+              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+            >
+              <option value="chat">Chat Completions API (Standard)</option>
+              <option value="responses">Responses API (Advanced)</option>
+            </select>
+            <p className="text-xs text-neutral-500 mt-1">
+              <strong>Chat Completions:</strong> Standard API, widely supported, lower latency.
+              <strong>Responses:</strong> Advanced features, built-in tools, GPT-5 support.
+            </p>
+          </div>
+
           {/* Model Selection */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -212,13 +234,29 @@ export default function OpenAISettings() {
               onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
-              <option value="gpt-4o">GPT-4o (Recommended - Multimodal)</option>
-              <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective)</option>
-              <option value="gpt-4-turbo">GPT-4 Turbo</option>
-              <option value="gpt-4">GPT-4</option>
-              <option value="o1-preview">o1-preview (Reasoning Model)</option>
-              <option value="o1-mini">o1-mini (Fast Reasoning)</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>
+              {formData.api_type === 'responses' ? (
+                // Responses API models
+                <>
+                  <option value="gpt-5">GPT-5 (Flagship - Highest Capability)</option>
+                  <option value="gpt-5-mini">GPT-5-mini (Balanced Performance & Cost)</option>
+                  <option value="gpt-5-nano">GPT-5-nano (Fastest & Most Efficient)</option>
+                  <option value="gpt-4o">GPT-4o (Multimodal)</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini</option>
+                  <option value="o1-preview">o1-preview (Reasoning)</option>
+                  <option value="o1-mini">o1-mini (Fast Reasoning)</option>
+                </>
+              ) : (
+                // Chat Completions API models
+                <>
+                  <option value="gpt-4o">GPT-4o (Recommended - Multimodal)</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini (Fast & Cost-Effective)</option>
+                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                  <option value="gpt-4">GPT-4</option>
+                  <option value="o1-preview">o1-preview (Reasoning Model)</option>
+                  <option value="o1-mini">o1-mini (Fast Reasoning)</option>
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legacy)</option>
+                </>
+              )}
             </select>
             <p className="text-xs text-neutral-500 mt-1">
               <strong>gpt-4o:</strong> Best for most use cases. Fast, smart, multimodal.

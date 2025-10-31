@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 const openaiSettingsSchema = z.object({
   api_key: z.string().min(1).optional().nullable(),
+  api_type: z.enum(['chat', 'responses']).optional(),
   model: z.string().min(1).optional(),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().min(100).max(4000).optional(),
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
       .select('setting_key, setting_value')
       .in('setting_key', [
         'openai_api_key',
+        'openai_api_type',
         'openai_model',
         'openai_temperature',
         'openai_max_tokens',
@@ -125,6 +127,13 @@ export async function PATCH(request: NextRequest) {
       updates.push({
         setting_key: 'openai_api_key',
         setting_value: validatedData.api_key,
+      })
+    }
+
+    if (validatedData.api_type !== undefined) {
+      updates.push({
+        setting_key: 'openai_api_type',
+        setting_value: validatedData.api_type,
       })
     }
 

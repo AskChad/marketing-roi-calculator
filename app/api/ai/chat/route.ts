@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Get OpenAI configuration
     let apiKey: string | null = null
+    let apiType = 'chat' // 'chat' or 'responses'
     let model = 'gpt-4o' // Default to latest model
     let temperature = 0.7
     let maxTokens = 2000
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         .select('setting_key, setting_value')
         .in('setting_key', [
           'openai_api_key',
+          'openai_api_type',
           'openai_model',
           'openai_temperature',
           'openai_max_tokens',
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
 
       adminSettings?.forEach((s: any) => {
         if (s.setting_key === 'openai_api_key') apiKey = s.setting_value
+        if (s.setting_key === 'openai_api_type' && s.setting_value) apiType = s.setting_value
         if (s.setting_key === 'openai_model' && s.setting_value) model = s.setting_value
         if (s.setting_key === 'openai_temperature' && s.setting_value) temperature = parseFloat(s.setting_value)
         if (s.setting_key === 'openai_max_tokens' && s.setting_value) maxTokens = parseInt(s.setting_value)
@@ -79,6 +82,7 @@ export async function POST(request: NextRequest) {
     console.log('AI Chat Request:', {
       userId: validatedData.userId,
       isAdmin: validatedData.isAdmin,
+      apiType,
       model,
       temperature,
       maxTokens,
@@ -98,7 +102,22 @@ export async function POST(request: NextRequest) {
     // Select appropriate functions based on user role
     const availableFunctions = validatedData.isAdmin ? adminFunctions : userFunctions
 
-    // Call OpenAI API with function calling
+    // Route to correct API based on apiType
+    if (apiType === 'responses') {
+      // Use Responses API (for GPT-5 and advanced features)
+      return await handleResponsesAPI({
+        apiKey,
+        model,
+        temperature,
+        maxTokens,
+        fullSystemMessage,
+        validatedData,
+        availableFunctions,
+        supabase
+      })
+    }
+
+    // Default: Use Chat Completions API
     const messages = [
       {
         role: 'system',
@@ -291,4 +310,210 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+/**
+ * Handle requests using OpenAI Responses API (for GPT-5 and advanced features)
+ */
+async function handleResponsesAPI(params: {
+  apiKey: string
+  model: string
+  temperature: number
+  maxTokens: number
+  fullSystemMessage: string
+  validatedData: any
+  availableFunctions: any[]
+  supabase: any
+}) {
+  const {
+    apiKey,
+    model,
+    temperature,
+    maxTokens,
+    fullSystemMessage,
+    validatedData,
+    availableFunctions,
+    supabase
+  } = params
+
+  console.log('Using Responses API with model:', model)
+
+  // Build messages for Responses API
+  const messages = [
+    {
+      role: 'system',
+      content: fullSystemMessage,
+    },
+    ...validatedData.conversationHistory.map((msg: any) => ({
+      role: msg.role,
+      content: msg.content,
+      ...(msg.name && { name: msg.name }),
+      ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
+    })),
+    {
+      role: 'user',
+      content: validatedData.message,
+    },
+  ]
+
+  // Make initial request to Responses API
+  let response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      tools: availableFunctions.map(fn => ({
+        type: 'function',
+        function: {
+          ...fn,
+          strict: true, // Enable Structured Outputs
+        },
+      })),
+      tool_choice: 'auto',
+      parallel_tool_calls: true, // Allow multiple tool calls
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.text()
+    console.error('OpenAI Responses API error:', response.status, errorData)
+
+    // Parse error for better user feedback
+    try {
+      const errorJson = JSON.parse(errorData)
+      const errorMessage = errorJson.error?.message || errorJson.error || 'Unknown OpenAI error'
+      console.error('Full OpenAI Responses API error:', errorJson)
+      throw new Error(`OpenAI Responses API error (${response.status}): ${errorMessage}`)
+    } catch (parseError) {
+      console.error('Could not parse OpenAI Responses API error:', errorData)
+      throw new Error(`OpenAI Responses API request failed with status ${response.status}: ${errorData}`)
+    }
+  }
+
+  let data = await response.json()
+  let aiMessage = data.choices[0].message
+
+  // Handle function calls with iteration
+  const maxIterations = 5
+  let iterations = 0
+
+  while (aiMessage.tool_calls && iterations < maxIterations) {
+    iterations++
+
+    // Execute all function calls in parallel
+    const functionResults = await Promise.all(
+      aiMessage.tool_calls.map(async (toolCall: any) => {
+        try {
+          const functionName = toolCall.function.name
+          const functionArgs = JSON.parse(toolCall.function.arguments)
+
+          const result = await executeFunctionCall(
+            functionName,
+            functionArgs,
+            supabase,
+            validatedData.userId,
+            validatedData.isAdmin
+          )
+
+          return {
+            tool_call_id: toolCall.id,
+            role: 'tool',
+            name: functionName,
+            content: JSON.stringify(result),
+          }
+        } catch (error: any) {
+          return {
+            tool_call_id: toolCall.id,
+            role: 'tool',
+            name: toolCall.function.name,
+            content: JSON.stringify({ error: error.message }),
+          }
+        }
+      })
+    )
+
+    // Add assistant message and function results to conversation
+    messages.push(aiMessage)
+    messages.push(...functionResults)
+
+    // Call Responses API again with function results
+    response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        tools: availableFunctions.map(fn => ({
+          type: 'function',
+          function: {
+            ...fn,
+            strict: true,
+          },
+        })),
+        tool_choice: 'auto',
+        parallel_tool_calls: true,
+        temperature,
+        max_tokens: maxTokens,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('OpenAI Responses API error (iteration):', response.status, errorData)
+      throw new Error(`OpenAI Responses API error: ${response.status}`)
+    }
+
+    data = await response.json()
+    aiMessage = data.choices[0].message
+  }
+
+  const finalResponse = aiMessage.content || 'No response generated.'
+
+  // Save conversation to database
+  try {
+    const { data: conversation } = await supabase
+      .from('ai_chat_conversations')
+      .insert([{
+        user_id: validatedData.userId,
+        title: validatedData.message.substring(0, 100),
+        is_active: true,
+      }] as any)
+      .select('id')
+      .single()
+
+    if (conversation) {
+      await supabase
+        .from('ai_chat_messages')
+        .insert([
+          {
+            conversation_id: (conversation as any).id,
+            role: 'user',
+            content: validatedData.message,
+            tokens_used: data.usage?.prompt_tokens || 0,
+          },
+          {
+            conversation_id: (conversation as any).id,
+            role: 'assistant',
+            content: finalResponse,
+            tokens_used: data.usage?.completion_tokens || 0,
+          },
+        ] as any)
+    }
+  } catch (dbError) {
+    console.error('Failed to save conversation:', dbError)
+  }
+
+  return NextResponse.json({
+    response: finalResponse,
+    usage: data.usage,
+  })
 }
