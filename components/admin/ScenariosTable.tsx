@@ -69,11 +69,23 @@ interface ScenariosTableProps {
   scenarios: Scenario[]
 }
 
+interface NumericFilters {
+  minCPL?: number
+  maxCPL?: number
+  minCPA?: number
+  maxCPA?: number
+  minRevenue?: number
+  maxRevenue?: number
+  minSales?: number
+  maxSales?: number
+}
+
 export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
+  const [numericFilters, setNumericFilters] = useState<NumericFilters>({})
+  const [showFilters, setShowFilters] = useState(true)
   const [showColumnSelector, setShowColumnSelector] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(100)
@@ -123,6 +135,14 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
     setVisibleColumns(newColumns)
   }
 
+  const updateNumericFilter = (key: keyof NumericFilters, value: string) => {
+    const numValue = value === '' ? undefined : parseFloat(value)
+    setNumericFilters(prev => ({
+      ...prev,
+      [key]: numValue
+    }))
+  }
+
   // Filter and search logic
   const filteredScenarios = useMemo(() => {
     return scenarios.filter(scenario => {
@@ -136,37 +156,13 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
       const cplImprovementPct = session ? ((session.current_cpl - scenario.new_cpl) / session.current_cpl) * 100 : 0
       const convRateChange = session ? scenario.target_conversion_rate - session.current_conversion_rate : 0
 
-      // Search term filter - search across ALL fields including calculated percentages
+      // Text search filter - search text fields only (name, user, period)
       if (searchTerm) {
         const search = searchTerm.toLowerCase()
         const matchesSearch =
           scenario.scenario_name.toLowerCase().includes(search) ||
           (scenario.users?.email.toLowerCase().includes(search)) ||
-          scenario.sales_increase.toString().includes(search) ||
-          scenario.revenue_increase.toString().includes(search) ||
-          scenario.cpa_improvement_percent.toString().includes(search) ||
-          scenario.new_sales.toString().includes(search) ||
-          scenario.new_cpl.toString().includes(search) ||
-          scenario.new_cpa.toString().includes(search) ||
-          scenario.new_revenue.toString().includes(search) ||
-          scenario.target_conversion_rate.toString().includes(search) ||
-          (scenario.adjusted_leads?.toString().includes(search)) ||
-          (scenario.adjusted_ad_spend?.toString().includes(search)) ||
-          (session?.time_period.toLowerCase().includes(search)) ||
-          (session?.current_leads.toString().includes(search)) ||
-          (session?.current_sales.toString().includes(search)) ||
-          (session?.current_conversion_rate.toString().includes(search)) ||
-          (session?.current_cpl.toString().includes(search)) ||
-          (session?.current_cpa.toString().includes(search)) ||
-          (session?.current_ad_spend.toString().includes(search)) ||
-          (session?.current_revenue.toString().includes(search)) ||
-          // Search calculated percentages
-          salesIncreasePct.toFixed(1).includes(search) ||
-          revenueIncreasePct.toFixed(1).includes(search) ||
-          cpaImprovement.toFixed(2).includes(search) ||
-          cplImprovement.toFixed(2).includes(search) ||
-          cplImprovementPct.toFixed(1).includes(search) ||
-          convRateChange.toFixed(2).includes(search)
+          (session?.time_period.toLowerCase().includes(search))
 
         if (!matchesSearch) return false
       }
@@ -185,18 +181,40 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
         if (scenarioDate > toDate) return false
       }
 
+      // Numeric filters
+      if (Object.keys(numericFilters).length > 0) {
+        if (!session) return false
+
+        // CPL filter
+        if (numericFilters.minCPL !== undefined && session.current_cpl < numericFilters.minCPL) return false
+        if (numericFilters.maxCPL !== undefined && session.current_cpl > numericFilters.maxCPL) return false
+
+        // CPA filter
+        if (numericFilters.minCPA !== undefined && session.current_cpa < numericFilters.minCPA) return false
+        if (numericFilters.maxCPA !== undefined && session.current_cpa > numericFilters.maxCPA) return false
+
+        // Revenue filter
+        if (numericFilters.minRevenue !== undefined && scenario.revenue_increase < numericFilters.minRevenue) return false
+        if (numericFilters.maxRevenue !== undefined && scenario.revenue_increase > numericFilters.maxRevenue) return false
+
+        // Sales filter
+        if (numericFilters.minSales !== undefined && scenario.sales_increase < numericFilters.minSales) return false
+        if (numericFilters.maxSales !== undefined && scenario.sales_increase > numericFilters.maxSales) return false
+      }
+
       return true
     })
-  }, [scenarios, searchTerm, dateFrom, dateTo])
+  }, [scenarios, searchTerm, dateFrom, dateTo, numericFilters])
 
   const clearFilters = () => {
     setSearchTerm('')
+    setNumericFilters({})
     setDateFrom('')
     setDateTo('')
     setCurrentPage(1)
   }
 
-  const hasActiveFilters = searchTerm || dateFrom || dateTo
+  const hasActiveFilters = searchTerm || dateFrom || dateTo || Object.keys(numericFilters).length > 0
 
   // Pagination logic
   const totalPages = Math.ceil(filteredScenarios.length / pageSize)
@@ -223,7 +241,7 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
             <input
               type="text"
-              placeholder="Search by name, user, period, leads, sales, conversion rate, CPL, CPA, revenue..."
+              placeholder="Search text fields (name, user, period)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-10 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
@@ -266,49 +284,162 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-semibold text-neutral-900">Date Range Filter</h4>
+        <div className="bg-white border border-neutral-200 rounded-lg p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-semibold text-neutral-900">Filters</h4>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="text-sm text-brand-primary hover:text-blue-700 flex items-center gap-1"
+                className="text-sm text-brand-primary hover:text-blue-700 flex items-center gap-1 font-medium"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
                 Clear All
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                From Date
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
-                />
+
+          {/* Date Range Filters */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Date Range</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Start Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">End Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                  />
+                </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                To Date
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          </div>
+
+          {/* Numeric Filters */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">Numeric Filters</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* CPL Filters */}
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Min CPL ($)</label>
                 <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
+                  type="number"
+                  placeholder="Min"
+                  step="0.01"
+                  value={numericFilters.minCPL ?? ''}
+                  onChange={(e) => updateNumericFilter('minCPL', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Max CPL ($)</label>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  step="0.01"
+                  value={numericFilters.maxCPL ?? ''}
+                  onChange={(e) => updateNumericFilter('maxCPL', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+
+              {/* CPA Filters */}
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Min CPA ($)</label>
+                <input
+                  type="number"
+                  placeholder="Min"
+                  step="0.01"
+                  value={numericFilters.minCPA ?? ''}
+                  onChange={(e) => updateNumericFilter('minCPA', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Max CPA ($)</label>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  step="0.01"
+                  value={numericFilters.maxCPA ?? ''}
+                  onChange={(e) => updateNumericFilter('maxCPA', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+
+              {/* Revenue Filters */}
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Min Revenue ($)</label>
+                <input
+                  type="number"
+                  placeholder="Min"
+                  step="1"
+                  value={numericFilters.minRevenue ?? ''}
+                  onChange={(e) => updateNumericFilter('minRevenue', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Max Revenue ($)</label>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  step="1"
+                  value={numericFilters.maxRevenue ?? ''}
+                  onChange={(e) => updateNumericFilter('maxRevenue', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+
+              {/* Sales Filters */}
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Min Sales</label>
+                <input
+                  type="number"
+                  placeholder="Min"
+                  step="1"
+                  value={numericFilters.minSales ?? ''}
+                  onChange={(e) => updateNumericFilter('minSales', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-600 mb-1">Max Sales</label>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  step="1"
+                  value={numericFilters.maxSales ?? ''}
+                  onChange={(e) => updateNumericFilter('maxSales', e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary text-sm"
                 />
               </div>
             </div>
           </div>
+
+          {/* Filter Results Count */}
+          {hasActiveFilters && (
+            <div className="pt-4 border-t border-neutral-200">
+              <p className="text-sm text-neutral-600">
+                Showing <span className="font-semibold text-neutral-900">{filteredScenarios.length}</span> of{' '}
+                <span className="font-semibold text-neutral-900">{scenarios.length}</span> scenarios
+              </p>
+            </div>
+          )}
         </div>
       )}
 
