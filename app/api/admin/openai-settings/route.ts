@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (!(userData as any)?.is_admin) {
+    const isAdmin = (userData as any)?.is_admin
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -112,7 +113,8 @@ export async function PATCH(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (!(userData as any)?.is_admin) {
+    const isAdmin = (userData as any)?.is_admin
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
