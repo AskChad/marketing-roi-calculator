@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3, Bot } from 'lucide-react'
+import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3, Bot, UserPlus, X, Loader, Eye, EyeOff } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 import VisitsTable from './VisitsTable'
 import ScenariosTable from './ScenariosTable'
@@ -21,7 +21,53 @@ type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' |
 
 export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits, brands }: AdminContentProps) {
   const [activeSection, setActiveSection] = useState<ManagementSection>('overview')
+  const [showNewUserModal, setShowNewUserModal] = useState(false)
+  const [isCreatingUser, setIsCreatingUser] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [newUserData, setNewUserData] = useState({
+    email: '',
+    password: '',
+    phone: '',
+    is_admin: false
+  })
+  const [createUserError, setCreateUserError] = useState('')
+  const [createUserSuccess, setCreateUserSuccess] = useState('')
   const isGHLConnected = ghlSettings.find(s => s.setting_key === 'ghl_connected')?.setting_value === 'true'
+
+  const handleCreateUser = async () => {
+    try {
+      setIsCreatingUser(true)
+      setCreateUserError('')
+      setCreateUserSuccess('')
+
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUserData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create user')
+      }
+
+      setCreateUserSuccess(`User ${newUserData.email} created successfully!`)
+      setNewUserData({ email: '', password: '', phone: '', is_admin: false })
+
+      // Close modal after 2 seconds and refresh page
+      setTimeout(() => {
+        setShowNewUserModal(false)
+        window.location.reload()
+      }, 2000)
+    } catch (error: any) {
+      setCreateUserError(error.message || 'Failed to create user')
+    } finally {
+      setIsCreatingUser(false)
+    }
+  }
 
   // Overview - Card Selection Interface
   if (activeSection === 'overview') {
@@ -228,9 +274,18 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
       {/* Users Management Section */}
       {activeSection === 'users' && (
         <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
-          <div className="flex items-center mb-6">
-            <Users className="h-6 w-6 text-brand-primary mr-3" />
-            <h3 className="text-2xl font-bold text-neutral-900">All Users</h3>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Users className="h-6 w-6 text-brand-primary mr-3" />
+              <h3 className="text-2xl font-bold text-neutral-900">All Users</h3>
+            </div>
+            <button
+              onClick={() => setShowNewUserModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-brand-primary hover:bg-brand-primary-dark text-white rounded-lg font-medium transition-colors"
+            >
+              <UserPlus className="h-5 w-5" />
+              <span>New User</span>
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -332,6 +387,121 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             <h3 className="text-2xl font-bold text-neutral-900">OpenAI Configuration</h3>
           </div>
           <OpenAISettings />
+        </div>
+      )}
+
+      {/* New User Modal */}
+      {showNewUserModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-neutral-900">Create New User</h3>
+              <button
+                onClick={() => setShowNewUserModal(false)}
+                className="text-neutral-400 hover:text-neutral-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {createUserError && (
+              <div className="mb-4 p-3 bg-error-light/20 border border-error rounded-lg text-error-dark text-sm">
+                {createUserError}
+              </div>
+            )}
+
+            {createUserSuccess && (
+              <div className="mb-4 p-3 bg-success-light/20 border border-success rounded-lg text-success-dark text-sm">
+                {createUserSuccess}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={newUserData.email}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="user@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={newUserData.password}
+                    onChange={(e) => setNewUserData(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full px-4 py-2 pr-10 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Phone (optional)
+                </label>
+                <input
+                  type="tel"
+                  value={newUserData.phone}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, phone: e.target.value }))}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="is_admin"
+                  checked={newUserData.is_admin}
+                  onChange={(e) => setNewUserData(prev => ({ ...prev, is_admin: e.target.checked }))}
+                  className="w-4 h-4 text-brand-primary border-neutral-300 rounded focus:ring-brand-primary"
+                />
+                <label htmlFor="is_admin" className="text-sm font-medium text-neutral-700">
+                  Make this user an administrator
+                </label>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={() => setShowNewUserModal(false)}
+                  className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateUser}
+                  disabled={isCreatingUser || !newUserData.email || !newUserData.password}
+                  className="flex-1 px-4 py-2 bg-brand-primary hover:bg-brand-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {isCreatingUser ? (
+                    <>
+                      <Loader className="h-5 w-5 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <span>Create User</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
