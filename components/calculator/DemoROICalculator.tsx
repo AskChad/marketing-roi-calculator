@@ -35,6 +35,7 @@ interface DemoROICalculatorProps {
 
 export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }: DemoROICalculatorProps) {
   const [currentMetrics, setCurrentMetrics] = useState<CurrentROIFormData | null>(null)
+  const [prospectiveMetrics, setProspectiveMetrics] = useState<any>(null)
   const [showScenarioForm, setShowScenarioForm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -119,6 +120,17 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
       const revenueIncrease = newRevenue - currentMetrics.current_revenue
       const cpaImprovementPercent = ((currentCPA - newCPA) / currentCPA) * 100
 
+      // Store prospective metrics for display
+      setProspectiveMetrics({
+        leads: adjustedLeads,
+        sales: newSales,
+        adSpend: adjustedAdSpend,
+        revenue: newRevenue,
+        conversionRate: data.target_conversion_rate,
+        cpl: newCPL,
+        cpa: newCPA,
+      })
+
       const calculatedData = {
         company_name: currentMetrics.company_name,
         scenario_name: data.scenario_name,
@@ -157,12 +169,13 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
           onDemoSaved(demo)
         }
 
-        // Reset forms
-        setCurrentMetrics(null)
-        setShowScenarioForm(false)
+        // Only reset Step 2 form, keep Step 1 data
         setEnableAdjustments(false)
-        currentForm.reset({ time_period: 'monthly' })
         scenarioForm.reset({ target_conversion_rate: 5 })
+
+        // Generate new scenario name for next scenario
+        const autoName = generateScenarioName(currentMetrics.company_name)
+        scenarioForm.setValue('scenario_name', autoName)
 
         setTimeout(() => setShowSuccess(false), 3000)
       } else {
@@ -177,6 +190,19 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
     }
   }
 
+  const formatNumber = (num: number): string => {
+    const absNum = Math.abs(num)
+    if (absNum >= 1000000) {
+      return '$' + (num / 1000000).toFixed(1) + 'M'
+    } else if (absNum >= 10000) {
+      return '$' + (num / 1000).toFixed(1) + 'k'
+    } else if (absNum >= 1000) {
+      return '$' + Math.round(num).toLocaleString()
+    } else {
+      return '$' + num.toFixed(2)
+    }
+  }
+
   return (
     <div className="w-full">
       {showSuccess && (
@@ -185,9 +211,76 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
         </div>
       )}
 
-      {/* Two-Column Design */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* LEFT: Current Marketing ROI (Step 1) */}
+      {/* Three-Column Design */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* LEFT: Results Column */}
+        <div className="space-y-6">
+          {currentMetrics && (
+            <>
+              {/* Current Metrics (Gray) */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-200">
+                <h3 className="text-lg font-bold text-neutral-900 mb-4">Current Metrics</h3>
+                <div className="space-y-3">
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Number of Leads</p>
+                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_leads}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Number of Sales</p>
+                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_sales}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Total Ad Spend</p>
+                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_ad_spend)}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Total Revenue</p>
+                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_revenue)}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg border-2 border-neutral-300">
+                    <p className="text-xs text-neutral-600 mb-1">Close Ratio (CR)</p>
+                    <p className="text-lg font-bold text-neutral-900">
+                      {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prospective Metrics (Green) */}
+              {prospectiveMetrics && (
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-success">
+                  <h3 className="text-lg font-bold text-success-dark mb-4">Prospective Metrics</h3>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Number of Leads</p>
+                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.leads}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Number of Sales</p>
+                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.sales}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Total Ad Spend</p>
+                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Total Revenue</p>
+                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg border-2 border-success">
+                      <p className="text-xs text-success-dark mb-1">Close Ratio (CR)</p>
+                      <p className="text-lg font-bold text-success-dark">
+                        {prospectiveMetrics.conversionRate.toFixed(2)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* MIDDLE: Current Marketing ROI (Step 1) */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-neutral-900">
@@ -372,12 +465,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
                 <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
                   <p className="text-xs text-neutral-600 mb-1">Current Revenue</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    ${currentMetrics.current_revenue >= 1000000
-                      ? (currentMetrics.current_revenue / 1000000).toFixed(1) + 'M'
-                      : currentMetrics.current_revenue >= 10000
-                      ? (currentMetrics.current_revenue / 1000).toFixed(1) + 'k'
-                      : currentMetrics.current_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    }
+                    {formatNumber(currentMetrics.current_revenue)}
                   </p>
                 </div>
               </div>
