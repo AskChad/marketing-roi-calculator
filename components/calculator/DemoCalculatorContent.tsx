@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { TrendingUp, Plus, MessageSquare, BarChart3, Calendar, Calculator, Presentation } from 'lucide-react'
+import { TrendingUp, BarChart3, Calculator } from 'lucide-react'
 import DemoROICalculator from './DemoROICalculator'
 
 interface DemoCalculatorContentProps {
@@ -20,98 +20,92 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
     setRefreshKey(prev => prev + 1)
   }
 
-  // Format date consistently for server and client to avoid hydration errors
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const year = date.getUTCFullYear()
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(date.getUTCDate()).padStart(2, '0')
-    return `${month}/${day}/${year}`
-  }
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Main Content */}
-      <div className="lg:col-span-2 space-y-8">
-        {/* Brand Logo Section - Placeholder for client branding */}
-        <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="h-8 w-8 text-brand-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-neutral-900">Brand Company Name</h1>
-              <p className="text-sm text-neutral-600">Demo ROI Calculator</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Demo Calculator */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
-          <div className="flex items-center mb-6">
-            <Calculator className="h-6 w-6 text-brand-primary mr-3" />
-            <h2 className="text-2xl font-bold text-neutral-900">Demo Calculator</h2>
-          </div>
-          <p className="text-neutral-600 mb-8">
-            Create demo scenarios for prospective clients with company name tracking
-          </p>
-          <DemoROICalculator
-            userId={userId}
-            existingDemos={savedDemos}
-            onDemoSaved={handleDemoSaved}
-          />
-        </div>
-
-        {/* Saved Demo Scenarios */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-neutral-900">Demo Scenarios</h2>
-          </div>
-
-          {savedDemos.length === 0 ? (
-            <div className="text-center py-12">
-              <TrendingUp className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                No demo scenarios yet
-              </h3>
-              <p className="text-neutral-600">
-                Use the calculator above to create your first demo scenario
+    <div className="min-h-screen bg-neutral-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* ROI Calculator */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+              <div className="flex items-center mb-6">
+                <Calculator className="h-6 w-6 text-brand-primary mr-3" />
+                <h2 className="text-2xl font-bold text-neutral-900">ROI Calculator</h2>
+              </div>
+              <p className="text-neutral-600 mb-8">
+                Calculate your current marketing performance and model prospective scenarios
               </p>
+              <DemoROICalculator
+                userId={userId}
+                existingDemos={savedDemos}
+                onDemoSaved={handleDemoSaved}
+              />
             </div>
-          ) : (
-            <div className="space-y-4">
-              {savedDemos.map((demo) => (
-                <DemoScenarioCard key={demo.id} scenario={demo} />
-              ))}
+
+            {/* Saved Demo Scenarios */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-neutral-900">My Scenarios</h2>
+              </div>
+
+              {savedDemos.length === 0 ? (
+                <div className="text-center py-12">
+                  <TrendingUp className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+                    No scenarios yet
+                  </h3>
+                  <p className="text-neutral-600">
+                    Use the calculator above to create your first ROI scenario
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {savedDemos.map((demo) => (
+                    <DemoScenarioCard key={demo.id} scenario={demo} />
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Sidebar */}
-      <div className="space-y-6">
-        {/* Quick Links */}
-        <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
-          <h3 className="font-semibold text-neutral-900 mb-4">Quick Links</h3>
-          <ul className="space-y-3">
-            <li>
-              <Link href="/dashboard" className="text-brand-primary hover:underline flex items-center">
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Dashboard
-              </Link>
-            </li>
-          </ul>
-        </div>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* ROI Assistant Card */}
+            <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 border border-brand-primary/20 rounded-2xl p-6">
+              <Calculator className="h-12 w-12 text-brand-primary mb-4" />
+              <h3 className="text-xl font-bold text-neutral-900 mb-2">
+                AI ROI Assistant
+              </h3>
+              <p className="text-neutral-600 mb-4 text-sm">
+                Chat with AI to analyze your scenarios, get recommendations, and model what-if scenarios
+              </p>
+              <button
+                className="w-full px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                disabled
+              >
+                Start AI Chat
+              </button>
+            </div>
 
-        {/* ROI Calculator Title Section */}
-        <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 border border-brand-primary/20 rounded-2xl p-6">
-          <Calculator className="h-12 w-12 text-brand-primary mb-4" />
-          <h3 className="text-xl font-bold text-neutral-900 mb-2">
-            ROI Calculator
-          </h3>
-          <p className="text-neutral-600 mb-4 text-sm">
-            Calculate your current marketing performance and model prospective scenarios to demonstrate ROI improvements.
-          </p>
+            {/* Quick Links */}
+            <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
+              <h3 className="font-semibold text-neutral-900 mb-4">Quick Links</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/admin" className="text-brand-primary hover:underline flex items-center">
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/calculator" className="text-brand-primary hover:underline flex items-center">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    New Calculation
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
