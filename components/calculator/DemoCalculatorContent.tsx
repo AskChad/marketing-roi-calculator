@@ -24,15 +24,8 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* ROI Calculator */}
+            {/* Calculator */}
             <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
-              <div className="flex items-center mb-6">
-                <Calculator className="h-6 w-6 text-brand-primary mr-3" />
-                <h2 className="text-2xl font-bold text-neutral-900">ROI Calculator</h2>
-              </div>
-              <p className="text-neutral-600 mb-8">
-                Calculate your current marketing performance and model prospective scenarios
-              </p>
               <DemoROICalculator
                 userId={userId}
                 existingDemos={savedDemos}
@@ -74,15 +67,9 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
               <h3 className="text-xl font-bold text-neutral-900 mb-2">
                 AI ROI Assistant
               </h3>
-              <p className="text-neutral-600 mb-4 text-sm">
+              <p className="text-neutral-600 text-sm">
                 Chat with AI to analyze your scenarios, get recommendations, and model what-if scenarios
               </p>
-              <button
-                className="w-full px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium"
-                disabled
-              >
-                Start AI Chat
-              </button>
             </div>
 
             {/* Quick Links */}
@@ -93,12 +80,6 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
                   <Link href="/admin" className="text-brand-primary hover:underline flex items-center">
                     <TrendingUp className="mr-2 h-4 w-4" />
                     Admin Panel
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/calculator" className="text-brand-primary hover:underline flex items-center">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    New Calculation
                   </Link>
                 </li>
               </ul>
