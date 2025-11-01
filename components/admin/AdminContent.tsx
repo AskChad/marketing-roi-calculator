@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3, Bot, UserPlus, X, Loader, Eye, EyeOff } from 'lucide-react'
+import { Users, TrendingUp, Settings, Database, ArrowLeft, ChevronRight, MousePointerClick, Palette, BarChart3, Bot, UserPlus, X, Loader, Eye, EyeOff, Edit } from 'lucide-react'
 import GHLSettings from './GHLSettings'
 import VisitsTable from './VisitsTable'
 import ScenariosTable from './ScenariosTable'
@@ -32,6 +32,18 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
   })
   const [createUserError, setCreateUserError] = useState('')
   const [createUserSuccess, setCreateUserSuccess] = useState('')
+
+  // Edit user state
+  const [showEditUserModal, setShowEditUserModal] = useState(false)
+  const [isEditingUser, setIsEditingUser] = useState(false)
+  const [editUserData, setEditUserData] = useState<{
+    id: string
+    email: string
+    phone: string
+    is_admin: boolean
+  } | null>(null)
+  const [editUserError, setEditUserError] = useState('')
+  const [editUserSuccess, setEditUserSuccess] = useState('')
   const isGHLConnected = ghlSettings.find(s => s.setting_key === 'ghl_connected')?.setting_value === 'true'
 
   const handleCreateUser = async () => {
@@ -67,6 +79,59 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
     } finally {
       setIsCreatingUser(false)
     }
+  }
+
+  const handleEditUser = async () => {
+    if (!editUserData) return
+
+    try {
+      setIsEditingUser(true)
+      setEditUserError('')
+      setEditUserSuccess('')
+
+      const response = await fetch(`/api/admin/users/${editUserData.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: editUserData.email,
+          phone: editUserData.phone,
+          is_admin: editUserData.is_admin,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update user')
+      }
+
+      setEditUserSuccess(`User ${editUserData.email} updated successfully!`)
+
+      // Close modal after 2 seconds and refresh page
+      setTimeout(() => {
+        setShowEditUserModal(false)
+        setEditUserData(null)
+        window.location.reload()
+      }, 2000)
+    } catch (error: any) {
+      setEditUserError(error.message || 'Failed to update user')
+    } finally {
+      setIsEditingUser(false)
+    }
+  }
+
+  const openEditModal = (user: any) => {
+    setEditUserData({
+      id: user.id,
+      email: user.email,
+      phone: user.phone || '',
+      is_admin: user.is_admin,
+    })
+    setEditUserError('')
+    setEditUserSuccess('')
+    setShowEditUserModal(true)
   }
 
   // Overview - Card Selection Interface
@@ -295,6 +360,7 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                   <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Phone</th>
                   <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Role</th>
                   <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Joined</th>
+                  <th className="text-left text-sm font-semibold text-neutral-600 pb-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
@@ -315,6 +381,15 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                     </td>
                     <td className="py-3 text-sm text-neutral-600">
                       {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 text-sm">
+                      <button
+                        onClick={() => openEditModal(user)}
+                        className="flex items-center space-x-1 px-3 py-1 text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-colors"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span>Edit</span>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -497,6 +572,113 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                     </>
                   ) : (
                     <span>Create User</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {showEditUserModal && editUserData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-neutral-900">Edit User</h3>
+              <button
+                onClick={() => {
+                  setShowEditUserModal(false)
+                  setEditUserData(null)
+                }}
+                className="text-neutral-400 hover:text-neutral-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Success Message */}
+            {editUserSuccess && (
+              <div className="mb-4 p-4 bg-success-light/20 border border-success rounded-lg text-success-dark">
+                {editUserSuccess}
+              </div>
+            )}
+
+            {/* Error Message */}
+            {editUserError && (
+              <div className="mb-4 p-4 bg-error-light/20 border border-error rounded-lg text-error-dark">
+                {editUserError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={editUserData.email}
+                  onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="user@example.com"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Phone (optional)
+                </label>
+                <input
+                  type="tel"
+                  value={editUserData.phone}
+                  onChange={(e) => setEditUserData({ ...editUserData, phone: e.target.value })}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              {/* Admin Checkbox */}
+              <div className="flex items-center space-x-3 p-4 bg-neutral-50 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="edit-admin"
+                  checked={editUserData.is_admin}
+                  onChange={(e) => setEditUserData({ ...editUserData, is_admin: e.target.checked })}
+                  className="w-4 h-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+                />
+                <label htmlFor="edit-admin" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                  Grant Admin Privileges
+                </label>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowEditUserModal(false)
+                    setEditUserData(null)
+                  }}
+                  disabled={isEditingUser}
+                  className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditUser}
+                  disabled={isEditingUser || !editUserData.email}
+                  className="flex-1 px-4 py-2 bg-brand-primary hover:bg-brand-primary-dark text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {isEditingUser ? (
+                    <>
+                      <Loader className="h-5 w-5 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <span>Update User</span>
                   )}
                 </button>
               </div>
