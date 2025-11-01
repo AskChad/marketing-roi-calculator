@@ -181,6 +181,17 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
 }
 
 function ScenarioCard({ scenario }: { scenario: any }) {
+  // Format date consistently to avoid hydration errors
+  const formatLongDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December']
+    const month = months[date.getUTCMonth()]
+    const day = date.getUTCDate()
+    const year = date.getUTCFullYear()
+    return `${month} ${day}, ${year}`
+  }
+
   return (
     <div className="border border-neutral-200 rounded-lg p-6 hover:shadow-md transition">
       <div className="flex items-start justify-between mb-4">
@@ -189,11 +200,7 @@ function ScenarioCard({ scenario }: { scenario: any }) {
             {scenario.scenario_name}
           </h4>
           <p className="text-sm text-neutral-500">
-            {new Date(scenario.created_at).toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric'
-            })}
+            {formatLongDate(scenario.created_at)}
           </p>
         </div>
         <TrendingUp className="h-5 w-5 text-brand-primary" />
