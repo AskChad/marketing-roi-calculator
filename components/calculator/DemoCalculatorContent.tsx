@@ -33,34 +33,16 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Main Content */}
       <div className="lg:col-span-2 space-y-8">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
-            <div className="flex items-center justify-between mb-2">
-              <Presentation className="h-8 w-8 text-brand-primary" />
+        {/* Brand Logo Section - Placeholder for client branding */}
+        <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="h-8 w-8 text-brand-primary" />
             </div>
-            <p className="text-2xl font-bold text-neutral-900">{savedDemos.length}</p>
-            <p className="text-sm text-neutral-600">Total Demo Scenarios</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
-            <div className="flex items-center justify-between mb-2">
-              <Calendar className="h-8 w-8 text-brand-secondary" />
+            <div>
+              <h1 className="text-2xl font-bold text-neutral-900">Brand Company Name</h1>
+              <p className="text-sm text-neutral-600">Demo ROI Calculator</p>
             </div>
-            <p className="text-2xl font-bold text-neutral-900">
-              {savedDemos.length > 0 ? formatDate(savedDemos[0].created_at) : 'N/A'}
-            </p>
-            <p className="text-sm text-neutral-600">Latest Demo</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
-            <div className="flex items-center justify-between mb-2">
-              <BarChart3 className="h-8 w-8 text-brand-accent" />
-            </div>
-            <p className="text-2xl font-bold text-neutral-900">
-              Admin
-            </p>
-            <p className="text-sm text-neutral-600">Demo Mode</p>
           </div>
         </div>
 
@@ -108,17 +90,6 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
 
       {/* Sidebar */}
       <div className="space-y-6">
-        {/* Demo Info */}
-        <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 border border-brand-primary/20 rounded-2xl p-6">
-          <Presentation className="h-12 w-12 text-brand-primary mb-4" />
-          <h3 className="text-xl font-bold text-neutral-900 mb-2">
-            Demo Calculator
-          </h3>
-          <p className="text-neutral-600 mb-4 text-sm">
-            Create and manage demo scenarios for prospective clients. Track company names and showcase ROI improvements.
-          </p>
-        </div>
-
         {/* Quick Links */}
         <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
           <h3 className="font-semibold text-neutral-900 mb-4">Quick Links</h3>
@@ -129,13 +100,18 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
                 Dashboard
               </Link>
             </li>
-            <li>
-              <Link href="/admin" className="text-brand-primary hover:underline flex items-center">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Admin Panel
-              </Link>
-            </li>
           </ul>
+        </div>
+
+        {/* ROI Calculator Title Section */}
+        <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 border border-brand-primary/20 rounded-2xl p-6">
+          <Calculator className="h-12 w-12 text-brand-primary mb-4" />
+          <h3 className="text-xl font-bold text-neutral-900 mb-2">
+            ROI Calculator
+          </h3>
+          <p className="text-neutral-600 mb-4 text-sm">
+            Calculate your current marketing performance and model prospective scenarios to demonstrate ROI improvements.
+          </p>
         </div>
       </div>
     </div>
