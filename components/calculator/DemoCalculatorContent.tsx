@@ -20,48 +20,41 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Calculator */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
-              <DemoROICalculator
-                userId={userId}
-                existingDemos={savedDemos}
-                onDemoSaved={handleDemoSaved}
-              />
-            </div>
+    <div className="space-y-8">
+      {/* Calculator - Full Width */}
+      <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+        <DemoROICalculator
+          userId={userId}
+          existingDemos={savedDemos}
+          onDemoSaved={handleDemoSaved}
+        />
+      </div>
 
-            {/* Saved Demo Scenarios */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-neutral-900">My Scenarios</h2>
-              </div>
-
-              {savedDemos.length === 0 ? (
-                <div className="text-center py-12">
-                  <TrendingUp className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                    No scenarios yet
-                  </h3>
-                  <p className="text-neutral-600">
-                    Use the calculator above to create your first ROI scenario
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {savedDemos.map((demo) => (
-                    <DemoScenarioCard key={demo.id} scenario={demo} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar - Empty for now */}
-          <div className="space-y-6">
-          </div>
+      {/* Saved Demo Scenarios */}
+      <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-neutral-900">My Scenarios</h2>
         </div>
+
+        {savedDemos.length === 0 ? (
+          <div className="text-center py-12">
+            <TrendingUp className="h-16 w-16 text-neutral-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+              No scenarios yet
+            </h3>
+            <p className="text-neutral-600">
+              Use the calculator above to create your first ROI scenario
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {savedDemos.map((demo) => (
+              <DemoScenarioCard key={demo.id} scenario={demo} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
