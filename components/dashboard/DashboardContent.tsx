@@ -43,7 +43,7 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
               <Calendar className="h-8 w-8 text-brand-secondary" />
             </div>
             <p className="text-2xl font-bold text-neutral-900">
-              {scenarios.length > 0 ? new Date(scenarios[0].created_at).toLocaleDateString() : 'N/A'}
+              {scenarios.length > 0 ? new Date(scenarios[0].created_at).toLocaleDateString('en-US', { timeZone: 'UTC' }) : 'N/A'}
             </p>
             <p className="text-sm text-neutral-600">Latest Activity</p>
           </div>
@@ -141,12 +141,6 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
         <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
           <h3 className="font-semibold text-neutral-900 mb-4">Quick Links</h3>
           <ul className="space-y-3">
-            <li>
-              <Link href="/dashboard/platforms" className="text-brand-primary hover:underline flex items-center">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Platform Comparison
-              </Link>
-            </li>
             {isAdmin && (
               <li>
                 <Link href="/admin" className="text-brand-primary hover:underline flex items-center">
@@ -155,6 +149,12 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
                 </Link>
               </li>
             )}
+            <li>
+              <Link href="/calculator" className="text-brand-primary hover:underline flex items-center">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                New Calculation
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
