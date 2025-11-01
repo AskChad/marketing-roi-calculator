@@ -193,39 +193,41 @@ function ScenarioCard({ scenario }: { scenario: any }) {
   }
 
   return (
-    <div className="border border-neutral-200 rounded-lg p-6 hover:shadow-md transition">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h4 className="font-semibold text-neutral-900 text-lg mb-1">
-            {scenario.scenario_name}
-          </h4>
-          <p className="text-sm text-neutral-500">
-            {formatLongDate(scenario.created_at)}
-          </p>
+    <Link href={`/scenario/${scenario.id}`}>
+      <div className="border border-neutral-200 rounded-lg p-6 hover:shadow-md hover:border-brand-primary transition cursor-pointer">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h4 className="font-semibold text-neutral-900 text-lg mb-1 hover:text-brand-primary transition">
+              {scenario.scenario_name}
+            </h4>
+            <p className="text-sm text-neutral-500">
+              {formatLongDate(scenario.created_at)}
+            </p>
+          </div>
+          <TrendingUp className="h-5 w-5 text-brand-primary" />
         </div>
-        <TrendingUp className="h-5 w-5 text-brand-primary" />
-      </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <p className="text-xs text-neutral-600 mb-1">Sales Increase</p>
-          <p className="font-semibold text-neutral-900">
-            +{scenario.sales_increase}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-neutral-600 mb-1">Revenue Increase</p>
-          <p className="font-semibold text-neutral-900">
-            ${(scenario.revenue_increase / 1000).toFixed(1)}k
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-neutral-600 mb-1">CPA Improvement</p>
-          <p className="font-semibold text-success-dark">
-            {scenario.cpa_improvement_percent.toFixed(1)}%
-          </p>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs text-neutral-600 mb-1">Sales Increase</p>
+            <p className="font-semibold text-neutral-900">
+              +{scenario.sales_increase}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-600 mb-1">Revenue Increase</p>
+            <p className="font-semibold text-neutral-900">
+              ${(scenario.revenue_increase / 1000).toFixed(1)}k
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-600 mb-1">CPA Improvement</p>
+            <p className="font-semibold text-success-dark">
+              {scenario.cpa_improvement_percent.toFixed(1)}%
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
