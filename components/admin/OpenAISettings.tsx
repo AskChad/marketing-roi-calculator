@@ -14,6 +14,7 @@ export default function OpenAISettings() {
     api_key: '',
     api_key_masked: '',
     api_key_exists: false,
+    api_type: 'chat',
     model: 'gpt-4o',
     temperature: 0.7,
     max_tokens: 2000,
