@@ -68,11 +68,20 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
     const cpaImprovementPercent = ((currentCPA - newCPA) / currentCPA) * 100
 
     const calculatedData = {
-      ...data,
+      company_name: data.company_name,
+      scenario_name: data.scenario_name,
+      time_period: data.time_period,
+      current_leads: data.current_leads,
+      current_sales: data.current_sales,
+      current_ad_spend: data.current_ad_spend,
+      current_revenue: data.current_revenue,
       current_conversion_rate: currentConversionRate,
       current_cpl: currentCPL,
       current_cpa: currentCPA,
       avg_revenue_per_sale: avgRevenuePerSale,
+      target_conversion_rate: data.target_conversion_rate,
+      adjusted_leads: data.adjusted_leads || null,
+      adjusted_ad_spend: data.adjusted_ad_spend || null,
       new_sales: newSales,
       new_cpl: newCPL,
       new_cpa: newCPA,
