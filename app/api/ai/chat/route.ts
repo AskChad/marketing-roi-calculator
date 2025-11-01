@@ -517,7 +517,15 @@ async function handleResponsesAPI(params: {
     if (!response.ok) {
       const errorData = await response.text()
       console.error('OpenAI Responses API error (iteration):', response.status, errorData)
-      throw new Error(`OpenAI Responses API error: ${response.status}`)
+
+      // Parse error for better user feedback
+      try {
+        const errorJson = JSON.parse(errorData)
+        const errorMessage = errorJson.error?.message || errorJson.error || 'Unknown error'
+        throw new Error(`OpenAI Responses API error (${response.status}): ${errorMessage}`)
+      } catch (parseError) {
+        throw new Error(`OpenAI Responses API request failed with status ${response.status}: ${errorData}`)
+      }
     }
 
     data = await response.json()
