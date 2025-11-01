@@ -427,7 +427,7 @@ async function handleResponsesAPI(params: {
     // Convert function_call to tool_calls format
     aiMessage = {
       role: 'assistant',
-      content: null,
+      content: '', // Responses API requires string, not null
       tool_calls: [{
         id: output.call_id,
         type: 'function',
