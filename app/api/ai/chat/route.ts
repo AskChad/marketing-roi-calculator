@@ -406,19 +406,51 @@ async function handleResponsesAPI(params: {
 
   console.log('✅ Responses API Response:', {
     model: data.model,
-    hasChoices: !!data.choices,
-    choicesLength: data.choices?.length,
-    usage: data.usage,
-    fullResponse: JSON.stringify(data, null, 2)
+    status: data.status,
+    hasOutput: !!data.output,
+    outputLength: data.output?.length,
+    usage: data.usage
   })
 
-  // Responses API may have different structure than Chat Completions
-  if (!data.choices || !data.choices[0]) {
-    console.error('Unexpected Responses API structure:', data)
-    throw new Error(`Unexpected Responses API response structure: ${JSON.stringify(data)}`)
+  // Responses API uses 'output' array instead of 'choices'
+  if (!data.output || data.output.length === 0) {
+    console.error('No output in Responses API response:', data)
+    throw new Error(`No output in Responses API response: ${JSON.stringify(data)}`)
   }
 
-  let aiMessage = data.choices[0].message
+  // Convert Responses API format to Chat Completions format for compatibility
+  // Responses API output can be: function_call, message, or other types
+  const output = data.output[0]
+
+  let aiMessage: any
+  if (output.type === 'function_call') {
+    // Convert function_call to tool_calls format
+    aiMessage = {
+      role: 'assistant',
+      content: null,
+      tool_calls: [{
+        id: output.call_id,
+        type: 'function',
+        function: {
+          name: output.name,
+          arguments: output.arguments
+        }
+      }]
+    }
+  } else if (output.type === 'message') {
+    // Regular text message
+    aiMessage = {
+      role: 'assistant',
+      content: output.content || output.text || ''
+    }
+  } else {
+    // Unknown output type
+    console.error('Unknown Responses API output type:', output.type)
+    aiMessage = {
+      role: 'assistant',
+      content: JSON.stringify(output)
+    }
+  }
 
   // Handle function calls with iteration
   const maxIterations = 5
@@ -489,7 +521,37 @@ async function handleResponsesAPI(params: {
     }
 
     data = await response.json()
-    aiMessage = data.choices[0].message
+
+    // Parse Responses API output
+    if (!data.output || data.output.length === 0) {
+      throw new Error('No output in Responses API iteration response')
+    }
+
+    const iterationOutput = data.output[0]
+    if (iterationOutput.type === 'function_call') {
+      aiMessage = {
+        role: 'assistant',
+        content: null,
+        tool_calls: [{
+          id: iterationOutput.call_id,
+          type: 'function',
+          function: {
+            name: iterationOutput.name,
+            arguments: iterationOutput.arguments
+          }
+        }]
+      }
+    } else if (iterationOutput.type === 'message') {
+      aiMessage = {
+        role: 'assistant',
+        content: iterationOutput.content || iterationOutput.text || ''
+      }
+    } else {
+      aiMessage = {
+        role: 'assistant',
+        content: JSON.stringify(iterationOutput)
+      }
+    }
   }
 
   const finalResponse = aiMessage.content || 'No response generated.'
