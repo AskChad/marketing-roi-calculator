@@ -382,7 +382,7 @@ async function handleResponsesAPI(params: {
         ...fn, // Spread name, description, parameters directly
       })),
       temperature,
-      ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
+      // Note: Responses API does not support max_tokens parameter
     }),
   })
 
@@ -478,7 +478,7 @@ async function handleResponsesAPI(params: {
           ...fn, // Spread name, description, parameters directly
         })),
         temperature,
-        ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
+        // Note: Responses API does not support max_tokens parameter
       }),
     })
 
