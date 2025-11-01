@@ -442,9 +442,19 @@ async function handleResponsesAPI(params: {
     }
   } else if (output.type === 'message') {
     // Regular text message
+    // Responses API may return content as object with {type, text} or as string
+    let messageContent = ''
+    if (typeof output.content === 'string') {
+      messageContent = output.content
+    } else if (output.content && typeof output.content === 'object' && 'text' in output.content) {
+      messageContent = output.content.text
+    } else if (output.text) {
+      messageContent = typeof output.text === 'string' ? output.text : (output.text.text || '')
+    }
+
     aiMessage = {
       role: 'assistant',
-      content: output.content || output.text || ''
+      content: messageContent
     }
   } else {
     // Unknown output type
@@ -565,9 +575,19 @@ async function handleResponsesAPI(params: {
         }]
       }
     } else if (iterationOutput.type === 'message') {
+      // Extract text content properly
+      let messageContent = ''
+      if (typeof iterationOutput.content === 'string') {
+        messageContent = iterationOutput.content
+      } else if (iterationOutput.content && typeof iterationOutput.content === 'object' && 'text' in iterationOutput.content) {
+        messageContent = iterationOutput.content.text
+      } else if (iterationOutput.text) {
+        messageContent = typeof iterationOutput.text === 'string' ? iterationOutput.text : (iterationOutput.text.text || '')
+      }
+
       aiMessage = {
         role: 'assistant',
-        content: iterationOutput.content || iterationOutput.text || ''
+        content: messageContent
       }
     } else {
       aiMessage = {
