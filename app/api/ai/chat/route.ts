@@ -369,15 +369,7 @@ async function handleResponsesAPI(params: {
     body: JSON.stringify({
       model,
       input: inputMessages, // Responses API uses 'input' not 'messages'
-      tools: availableFunctions.map(fn => ({
-        type: 'function',
-        function: {
-          ...fn,
-          strict: true, // Enable Structured Outputs
-        },
-      })),
-      tool_choice: 'auto',
-      parallel_tool_calls: true, // Allow multiple tool calls
+      tools: availableFunctions, // Responses API expects tools directly, not wrapped in 'function'
       temperature,
       ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
     }),
@@ -455,15 +447,7 @@ async function handleResponsesAPI(params: {
       body: JSON.stringify({
         model,
         input: inputMessages, // Responses API uses 'input' not 'messages'
-        tools: availableFunctions.map(fn => ({
-          type: 'function',
-          function: {
-            ...fn,
-            strict: true,
-          },
-        })),
-        tool_choice: 'auto',
-        parallel_tool_calls: true,
+        tools: availableFunctions, // Responses API expects tools directly, not wrapped in 'function'
         temperature,
         ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
       }),
