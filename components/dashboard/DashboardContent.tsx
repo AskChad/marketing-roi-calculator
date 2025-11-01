@@ -24,6 +24,15 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
     // The scenarios list will update on next page load
   }
 
+  // Format date consistently for server and client to avoid hydration errors
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const year = date.getUTCFullYear()
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    return `${month}/${day}/${year}`
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Main Content */}
@@ -43,7 +52,7 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
               <Calendar className="h-8 w-8 text-brand-secondary" />
             </div>
             <p className="text-2xl font-bold text-neutral-900">
-              {scenarios.length > 0 ? new Date(scenarios[0].created_at).toLocaleDateString('en-US', { timeZone: 'UTC' }) : 'N/A'}
+              {scenarios.length > 0 ? formatDate(scenarios[0].created_at) : 'N/A'}
             </p>
             <p className="text-sm text-neutral-600">Latest Activity</p>
           </div>
