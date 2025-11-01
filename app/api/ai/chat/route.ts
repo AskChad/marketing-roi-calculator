@@ -121,6 +121,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Default: Use Chat Completions API
+    console.log(`Using Chat Completions API with model: ${model}`)
+
     const messages = [
       {
         role: 'system',
@@ -178,6 +180,12 @@ export async function POST(request: NextRequest) {
     }
 
     let data = await response.json()
+    console.log('Chat Completions API Response:', {
+      model: data.model,
+      hasChoices: !!data.choices,
+      choicesLength: data.choices?.length,
+      usage: data.usage
+    })
     let aiMessage = data.choices[0].message
 
     // Handle function calls
@@ -339,7 +347,7 @@ async function handleResponsesAPI(params: {
     supabase
   } = params
 
-  console.log('Using Responses API with model:', model)
+  console.log(`🚀 Using Responses API (Advanced) with model: ${model}`)
 
   // Build input array for Responses API (uses 'input' instead of 'messages')
   const inputMessages = [
@@ -396,7 +404,13 @@ async function handleResponsesAPI(params: {
 
   let data = await response.json()
 
-  console.log('Responses API data structure:', JSON.stringify(data, null, 2))
+  console.log('✅ Responses API Response:', {
+    model: data.model,
+    hasChoices: !!data.choices,
+    choicesLength: data.choices?.length,
+    usage: data.usage,
+    fullResponse: JSON.stringify(data, null, 2)
+  })
 
   // Responses API may have different structure than Chat Completions
   if (!data.choices || !data.choices[0]) {
