@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -36,6 +36,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<DemoFormData>({
     resolver: zodResolver(demoFormSchema),
@@ -46,6 +47,34 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
   })
 
   const timePeriod = watch('time_period')
+  const companyName = watch('company_name')
+
+  // Auto-generate scenario name when company name changes
+  const generateScenarioName = (company: string) => {
+    if (!company) return ''
+
+    const today = new Date()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    const year = today.getFullYear()
+    const dateStr = `${month}/${day}/${year}`
+
+    // Count existing demos for this company to get version number
+    const companyDemos = existingDemos.filter(demo =>
+      demo.company_name.toLowerCase() === company.toLowerCase()
+    )
+    const version = companyDemos.length + 1
+
+    return `${company} - ${dateStr} - ${version}`
+  }
+
+  // Update scenario name when company name changes
+  React.useEffect(() => {
+    if (companyName) {
+      const autoName = generateScenarioName(companyName)
+      setValue('scenario_name', autoName)
+    }
+  }, [companyName, setValue])
 
   const onSubmit = async (data: DemoFormData) => {
     try {
@@ -165,21 +194,6 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
                 )}
               </div>
 
-              {/* Scenario Name */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Scenario Name *
-                </label>
-                <input
-                  {...register('scenario_name')}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                  placeholder="Q1 2025 Demo"
-                />
-                {errors.scenario_name && (
-                  <p className="text-error text-sm mt-1">{errors.scenario_name.message}</p>
-                )}
-              </div>
-
               {/* Time Period */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -294,6 +308,22 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
             </p>
 
             <div className="space-y-4">
+              {/* Scenario Name */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Scenario Name *
+                </label>
+                <input
+                  {...register('scenario_name')}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-neutral-50"
+                  placeholder="Auto-generated"
+                  readOnly
+                />
+                {errors.scenario_name && (
+                  <p className="text-error text-sm mt-1">{errors.scenario_name.message}</p>
+                )}
+              </div>
+
               {/* Target Conversion Rate */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
