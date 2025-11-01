@@ -349,6 +349,39 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
 
           {showScenarioForm && currentMetrics ? (
             <form onSubmit={scenarioForm.handleSubmit(handleStep2Submit)} className="space-y-6">
+              {/* Current Metrics Display */}
+              <div className="grid grid-cols-4 gap-3">
+                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">Current CR</p>
+                  <p className="text-lg font-bold text-neutral-900">
+                    {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
+                  </p>
+                </div>
+                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">Current CPL</p>
+                  <p className="text-lg font-bold text-neutral-900">
+                    ${(currentMetrics.current_ad_spend / currentMetrics.current_leads).toFixed(2)}
+                  </p>
+                </div>
+                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">Current CPA</p>
+                  <p className="text-lg font-bold text-neutral-900">
+                    ${(currentMetrics.current_ad_spend / currentMetrics.current_sales).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">Current Revenue</p>
+                  <p className="text-lg font-bold text-neutral-900">
+                    ${currentMetrics.current_revenue >= 1000000
+                      ? (currentMetrics.current_revenue / 1000000).toFixed(1) + 'M'
+                      : currentMetrics.current_revenue >= 10000
+                      ? (currentMetrics.current_revenue / 1000).toFixed(1) + 'k'
+                      : currentMetrics.current_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    }
+                  </p>
+                </div>
+              </div>
+
               {/* Scenario Name */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
