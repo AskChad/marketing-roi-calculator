@@ -422,6 +422,8 @@ async function handleResponsesAPI(params: {
   // Responses API output can be: function_call, message, or other types
   const output = data.output[0]
 
+  console.log('🔍 Responses API output:', JSON.stringify(output, null, 2))
+
   let aiMessage: any
   let hasFunctionCall = false
 
@@ -444,13 +446,22 @@ async function handleResponsesAPI(params: {
     // Regular text message
     // Responses API may return content as object with {type, text} or as string
     let messageContent = ''
+    console.log('📝 Parsing message content. output.content type:', typeof output.content)
+    console.log('📝 output.content value:', output.content)
+    console.log('📝 output.text value:', output.text)
+
     if (typeof output.content === 'string') {
       messageContent = output.content
+      console.log('✅ Used output.content as string')
     } else if (output.content && typeof output.content === 'object' && 'text' in output.content) {
       messageContent = output.content.text
+      console.log('✅ Used output.content.text')
     } else if (output.text) {
       messageContent = typeof output.text === 'string' ? output.text : (output.text.text || '')
+      console.log('✅ Used output.text')
     }
+
+    console.log('📤 Final messageContent:', messageContent)
 
     aiMessage = {
       role: 'assistant',
