@@ -495,18 +495,18 @@ async function handleResponsesAPI(params: {
     )
 
     // Add assistant message (without tool_calls for Responses API) and function results
-    // Responses API doesn't accept tool_calls in input, so just add assistant message with empty content
+    // Responses API doesn't accept tool_calls in input, and doesn't support role: 'tool'
+    // Instead, we send function results as 'user' messages
     inputMessages.push({
       role: 'assistant',
       content: ''
     })
 
-    // Add function results - Responses API format
+    // Add function results as user messages (Responses API doesn't support role: 'tool')
     functionResults.forEach(result => {
       inputMessages.push({
-        role: 'tool',
-        content: result.content,
-        name: result.name
+        role: 'user',
+        content: `Function ${result.name} returned: ${result.content}`
       })
     })
 
