@@ -507,28 +507,40 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
             <>
               {/* Current Metrics (Gray) */}
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-200">
-                <h3 className="text-lg font-bold text-neutral-900 mb-4">Current Metrics</h3>
-                <div className="space-y-3">
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Number of Leads</p>
-                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_leads}</p>
+                <h3 className="text-lg font-bold text-neutral-900 mb-4">Current</h3>
+                <div className="space-y-2">
+                  <div className="p-2 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Leads</p>
+                    <p className="font-bold text-neutral-900">{currentMetrics.current_leads.toLocaleString()}</p>
                   </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Number of Sales</p>
-                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_sales}</p>
+                  <div className="p-2 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Sales</p>
+                    <p className="font-bold text-neutral-900">{currentMetrics.current_sales.toLocaleString()}</p>
                   </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Total Ad Spend</p>
-                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_ad_spend)}</p>
+                  <div className="p-2 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Ad Spend</p>
+                    <p className="font-bold text-neutral-900">{formatNumber(currentMetrics.current_ad_spend)}</p>
                   </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Total Revenue</p>
-                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_revenue)}</p>
+                  <div className="p-2 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Revenue</p>
+                    <p className="font-bold text-neutral-900">{formatNumber(currentMetrics.current_revenue)}</p>
                   </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg border-2 border-neutral-300">
-                    <p className="text-xs text-neutral-600 mb-1">Close Ratio (CR)</p>
-                    <p className="text-lg font-bold text-neutral-900">
+                  <div className="p-2 bg-neutral-100 rounded-lg border-2 border-neutral-300">
+                    <p className="text-xs text-neutral-600 mb-1">CR</p>
+                    <p className="font-bold text-neutral-900">
                       {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="p-2 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">CPL</p>
+                    <p className="font-bold text-neutral-900">
+                      ${(currentMetrics.current_ad_spend / currentMetrics.current_leads).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">CPA</p>
+                    <p className="font-bold text-neutral-900">
+                      ${(currentMetrics.current_ad_spend / currentMetrics.current_sales).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -537,28 +549,40 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
               {/* Prospective Metrics (Green) */}
               {prospectiveMetrics && (
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-success">
-                  <h3 className="text-lg font-bold text-success-dark mb-4">Prospective Metrics</h3>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Number of Leads</p>
-                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.leads}</p>
+                  <h3 className="text-lg font-bold text-success-dark mb-4">Prospective</h3>
+                  <div className="space-y-2">
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Leads</p>
+                      <p className="font-bold text-success-dark">{prospectiveMetrics.leads.toLocaleString()}</p>
                     </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Number of Sales</p>
-                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.sales}</p>
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Sales</p>
+                      <p className="font-bold text-success-dark">{prospectiveMetrics.sales.toLocaleString()}</p>
                     </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Total Ad Spend</p>
-                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Ad Spend</p>
+                      <p className="font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
                     </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Total Revenue</p>
-                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Revenue</p>
+                      <p className="font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
                     </div>
-                    <div className="p-3 bg-success/10 rounded-lg border-2 border-success">
-                      <p className="text-xs text-success-dark mb-1">Close Ratio (CR)</p>
-                      <p className="text-lg font-bold text-success-dark">
+                    <div className="p-2 bg-success/10 rounded-lg border-2 border-success">
+                      <p className="text-xs text-success-dark mb-1">CR</p>
+                      <p className="font-bold text-success-dark">
                         {prospectiveMetrics.conversionRate.toFixed(2)}%
+                      </p>
+                    </div>
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">CPL</p>
+                      <p className="font-bold text-success-dark">
+                        ${prospectiveMetrics.cpl.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">CPA</p>
+                      <p className="font-bold text-success-dark">
+                        ${prospectiveMetrics.cpa.toFixed(2)}
                       </p>
                     </div>
                   </div>
