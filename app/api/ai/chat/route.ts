@@ -395,6 +395,15 @@ async function handleResponsesAPI(params: {
   }
 
   let data = await response.json()
+
+  console.log('Responses API data structure:', JSON.stringify(data, null, 2))
+
+  // Responses API may have different structure than Chat Completions
+  if (!data.choices || !data.choices[0]) {
+    console.error('Unexpected Responses API structure:', data)
+    throw new Error(`Unexpected Responses API response structure: ${JSON.stringify(data)}`)
+  }
+
   let aiMessage = data.choices[0].message
 
   // Handle function calls with iteration
