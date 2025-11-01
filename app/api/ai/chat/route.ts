@@ -341,8 +341,8 @@ async function handleResponsesAPI(params: {
 
   console.log('Using Responses API with model:', model)
 
-  // Build messages for Responses API
-  const messages = [
+  // Build input array for Responses API (uses 'input' instead of 'messages')
+  const inputMessages = [
     {
       role: 'system',
       content: fullSystemMessage,
@@ -368,7 +368,7 @@ async function handleResponsesAPI(params: {
     },
     body: JSON.stringify({
       model,
-      messages,
+      input: inputMessages, // Responses API uses 'input' not 'messages'
       tools: availableFunctions.map(fn => ({
         type: 'function',
         function: {
@@ -442,8 +442,8 @@ async function handleResponsesAPI(params: {
     )
 
     // Add assistant message and function results to conversation
-    messages.push(aiMessage)
-    messages.push(...functionResults)
+    inputMessages.push(aiMessage)
+    inputMessages.push(...functionResults)
 
     // Call Responses API again with function results
     response = await fetch('https://api.openai.com/v1/responses', {
@@ -454,7 +454,7 @@ async function handleResponsesAPI(params: {
       },
       body: JSON.stringify({
         model,
-        messages,
+        input: inputMessages, // Responses API uses 'input' not 'messages'
         tools: availableFunctions.map(fn => ({
           type: 'function',
           function: {
