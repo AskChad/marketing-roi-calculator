@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     let apiType = 'chat' // 'chat' or 'responses'
     let model = 'gpt-4o' // Default to latest model
     let temperature = 0.7
-    let maxTokens: number | null = 2000 // null = use model's max
+    let maxTokens: number | null = null // null = use model's max (default)
     let systemInstructions = ''
 
     // Check if user has personal API key

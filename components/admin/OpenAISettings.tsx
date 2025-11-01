@@ -32,7 +32,7 @@ export default function OpenAISettings() {
     api_type: 'chat', // 'chat' or 'responses'
     model: 'gpt-4o',
     temperature: 0.7,
-    max_tokens: 2000,
+    max_tokens: null, // Default to model's maximum
     system_instructions: '',
   })
 
@@ -59,7 +59,7 @@ export default function OpenAISettings() {
           api_type: data.settings.api_type || 'chat',
           model: data.settings.model || 'gpt-4o',
           temperature: data.settings.temperature || 0.7,
-          max_tokens: data.settings.max_tokens || 2000,
+          max_tokens: data.settings.max_tokens || null, // Default to null (use model max)
           system_instructions: data.settings.system_instructions || '',
         })
       }
