@@ -369,7 +369,10 @@ async function handleResponsesAPI(params: {
     body: JSON.stringify({
       model,
       input: inputMessages, // Responses API uses 'input' not 'messages'
-      tools: availableFunctions, // Responses API expects tools directly, not wrapped in 'function'
+      tools: availableFunctions.map(fn => ({
+        type: 'function',
+        ...fn, // Spread name, description, parameters directly
+      })),
       temperature,
       ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
     }),
@@ -447,7 +450,10 @@ async function handleResponsesAPI(params: {
       body: JSON.stringify({
         model,
         input: inputMessages, // Responses API uses 'input' not 'messages'
-        tools: availableFunctions, // Responses API expects tools directly, not wrapped in 'function'
+        tools: availableFunctions.map(fn => ({
+          type: 'function',
+          ...fn, // Spread name, description, parameters directly
+        })),
         temperature,
         ...(maxTokens !== null && { max_tokens: maxTokens }), // Only include if not null
       }),
