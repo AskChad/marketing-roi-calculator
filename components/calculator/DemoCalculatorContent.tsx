@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { TrendingUp, BarChart3, Calculator } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 import DemoROICalculator from './DemoROICalculator'
 
 interface DemoCalculatorContentProps {
@@ -59,31 +58,8 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Empty for now */}
           <div className="space-y-6">
-            {/* ROI Assistant Card */}
-            <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/10 border border-brand-primary/20 rounded-2xl p-6">
-              <Calculator className="h-12 w-12 text-brand-primary mb-4" />
-              <h3 className="text-xl font-bold text-neutral-900 mb-2">
-                AI ROI Assistant
-              </h3>
-              <p className="text-neutral-600 text-sm">
-                Chat with AI to analyze your scenarios, get recommendations, and model what-if scenarios
-              </p>
-            </div>
-
-            {/* Quick Links */}
-            <div className="bg-white rounded-lg shadow p-6 border border-neutral-200">
-              <h3 className="font-semibold text-neutral-900 mb-4">Quick Links</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link href="/admin" className="text-brand-primary hover:underline flex items-center">
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
   )
