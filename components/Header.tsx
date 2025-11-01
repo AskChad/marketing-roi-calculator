@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { TrendingUp, Settings } from 'lucide-react'
+import { TrendingUp, Settings, Presentation } from 'lucide-react'
 
 interface HeaderProps {
   showLogin?: boolean
@@ -56,13 +56,22 @@ export default function Header({ showLogin = true, showDashboard = false, userNa
             )}
 
             {isAdmin && (
-              <Link
-                href="/admin"
-                className="flex items-center text-neutral-600 hover:text-brand-primary transition"
-              >
-                <Settings className="mr-1 h-4 w-4" />
-                Admin
-              </Link>
+              <>
+                <Link
+                  href="/demo-calculator"
+                  className="flex items-center text-neutral-600 hover:text-brand-primary transition"
+                >
+                  <Presentation className="mr-1 h-4 w-4" />
+                  Demo Calculator
+                </Link>
+                <Link
+                  href="/admin"
+                  className="flex items-center text-neutral-600 hover:text-brand-primary transition"
+                >
+                  <Settings className="mr-1 h-4 w-4" />
+                  Admin
+                </Link>
+              </>
             )}
 
             {userName ? (
