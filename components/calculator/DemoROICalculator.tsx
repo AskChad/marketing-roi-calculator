@@ -125,177 +125,231 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full">
       {showSuccess && (
-        <div className="bg-success/10 border border-success rounded-lg p-4 text-success-dark">
+        <div className="bg-success/10 border border-success rounded-lg p-4 text-success-dark mb-6">
           ✓ Demo scenario saved successfully!
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Company & Scenario Info */}
-        <div>
-          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Demo Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Company Name *
-              </label>
-              <input
-                {...register('company_name')}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="Acme Corp"
-              />
-              {errors.company_name && (
-                <p className="text-error text-sm mt-1">{errors.company_name.message}</p>
-              )}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Two-Column Design */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* LEFT: Current Marketing ROI */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-neutral-900">
+                Current Marketing ROI
+              </h2>
+              <span className="px-3 py-1 bg-brand-primary/10 text-brand-primary text-sm font-medium rounded-full">
+                Step 1
+              </span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Scenario Name *
-              </label>
-              <input
-                {...register('scenario_name')}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="Q1 2025 Demo"
-              />
-              {errors.scenario_name && (
-                <p className="text-error text-sm mt-1">{errors.scenario_name.message}</p>
-              )}
+            <p className="text-neutral-600 mb-6">
+              Enter your current marketing metrics to establish a baseline
+            </p>
+
+            <div className="space-y-4">
+              {/* Company Name */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Company Name *
+                </label>
+                <input
+                  {...register('company_name')}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="Acme Corp"
+                />
+                {errors.company_name && (
+                  <p className="text-error text-sm mt-1">{errors.company_name.message}</p>
+                )}
+              </div>
+
+              {/* Scenario Name */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Scenario Name *
+                </label>
+                <input
+                  {...register('scenario_name')}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="Q1 2025 Demo"
+                />
+                {errors.scenario_name && (
+                  <p className="text-error text-sm mt-1">{errors.scenario_name.message}</p>
+                )}
+              </div>
+
+              {/* Time Period */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Time Period
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => reset({ ...watch(), time_period: 'weekly' })}
+                    className={`px-4 py-2 rounded-lg border ${
+                      timePeriod === 'weekly'
+                        ? 'bg-brand-primary text-white border-brand-primary'
+                        : 'bg-white text-neutral-600 border-neutral-300'
+                    }`}
+                  >
+                    Weekly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => reset({ ...watch(), time_period: 'monthly' })}
+                    className={`px-4 py-2 rounded-lg border ${
+                      timePeriod === 'monthly'
+                        ? 'bg-brand-primary text-white border-brand-primary'
+                        : 'bg-white text-neutral-600 border-neutral-300'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+              </div>
+
+              {/* Number of Leads */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Number of Leads
+                </label>
+                <input
+                  {...register('current_leads', { valueAsNumber: true })}
+                  type="number"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="100"
+                />
+                {errors.current_leads && (
+                  <p className="text-error text-sm mt-1">{errors.current_leads.message}</p>
+                )}
+              </div>
+
+              {/* Number of Sales */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Number of Sales
+                </label>
+                <input
+                  {...register('current_sales', { valueAsNumber: true })}
+                  type="number"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="10"
+                />
+                {errors.current_sales && (
+                  <p className="text-error text-sm mt-1">{errors.current_sales.message}</p>
+                )}
+              </div>
+
+              {/* Total Ad Spend */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Total Ad Spend ($)
+                </label>
+                <input
+                  {...register('current_ad_spend', { valueAsNumber: true })}
+                  type="number"
+                  step="0.01"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="5000"
+                />
+                {errors.current_ad_spend && (
+                  <p className="text-error text-sm mt-1">{errors.current_ad_spend.message}</p>
+                )}
+              </div>
+
+              {/* Total Revenue */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Total Revenue ($)
+                </label>
+                <input
+                  {...register('current_revenue', { valueAsNumber: true })}
+                  type="number"
+                  step="0.01"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="20000"
+                />
+                {errors.current_revenue && (
+                  <p className="text-error text-sm mt-1">{errors.current_revenue.message}</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Current Performance */}
-        <div>
-          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Current Performance</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Time Period
-              </label>
-              <select
-                {...register('time_period')}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+          {/* RIGHT: Prospective Scenario */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-neutral-900">
+                Prospective Scenario
+              </h2>
+              <span className="px-3 py-1 bg-brand-secondary/10 text-brand-secondary text-sm font-medium rounded-full">
+                Step 2
+              </span>
+            </div>
+            <p className="text-neutral-600 mb-6">
+              Complete Step 1 to unlock scenario modeling
+            </p>
+
+            <div className="space-y-4">
+              {/* Target Conversion Rate */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Target Conversion Rate (%)
+                </label>
+                <input
+                  {...register('target_conversion_rate', { valueAsNumber: true })}
+                  type="number"
+                  step="0.1"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="15"
+                />
+                {errors.target_conversion_rate && (
+                  <p className="text-error text-sm mt-1">{errors.target_conversion_rate.message}</p>
+                )}
+              </div>
+
+              {/* Adjusted Leads */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Adjusted Leads (optional)
+                </label>
+                <input
+                  {...register('adjusted_leads', { valueAsNumber: true })}
+                  type="number"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="Leave empty for same"
+                />
+              </div>
+
+              {/* Adjusted Ad Spend */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Adjusted Ad Spend ($) (optional)
+                </label>
+                <input
+                  {...register('adjusted_ad_spend', { valueAsNumber: true })}
+                  type="number"
+                  step="0.01"
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  placeholder="Leave empty for same"
+                />
+              </div>
+
+              {/* Calculate Button */}
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="w-full mt-6 px-6 py-3 bg-brand-primary hover:bg-brand-primary-dark text-white rounded-lg font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 transition-colors"
               >
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Current Leads ({timePeriod})
-              </label>
-              <input
-                {...register('current_leads', { valueAsNumber: true })}
-                type="number"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="100"
-              />
-              {errors.current_leads && (
-                <p className="text-error text-sm mt-1">{errors.current_leads.message}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Current Sales
-              </label>
-              <input
-                {...register('current_sales', { valueAsNumber: true })}
-                type="number"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="10"
-              />
-              {errors.current_sales && (
-                <p className="text-error text-sm mt-1">{errors.current_sales.message}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Ad Spend
-              </label>
-              <input
-                {...register('current_ad_spend', { valueAsNumber: true })}
-                type="number"
-                step="0.01"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="5000"
-              />
-              {errors.current_ad_spend && (
-                <p className="text-error text-sm mt-1">{errors.current_ad_spend.message}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Revenue
-              </label>
-              <input
-                {...register('current_revenue', { valueAsNumber: true })}
-                type="number"
-                step="0.01"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="20000"
-              />
-              {errors.current_revenue && (
-                <p className="text-error text-sm mt-1">{errors.current_revenue.message}</p>
-              )}
+                <span>{isSaving ? 'Saving Demo...' : 'Calculate & Save Demo'}</span>
+                <ArrowRight className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Target Scenario */}
-        <div>
-          <h3 className="text-lg font-semibold text-neutral-900 mb-4">Target Scenario</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Target Conversion Rate (%)
-              </label>
-              <input
-                {...register('target_conversion_rate', { valueAsNumber: true })}
-                type="number"
-                step="0.1"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="15"
-              />
-              {errors.target_conversion_rate && (
-                <p className="text-error text-sm mt-1">{errors.target_conversion_rate.message}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Adjusted Leads (optional)
-              </label>
-              <input
-                {...register('adjusted_leads', { valueAsNumber: true })}
-                type="number"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="Leave empty for same"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Adjusted Ad Spend (optional)
-              </label>
-              <input
-                {...register('adjusted_ad_spend', { valueAsNumber: true })}
-                type="number"
-                step="0.01"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                placeholder="Leave empty for same"
-              />
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="w-full px-6 py-3 bg-brand-primary hover:bg-brand-primary-dark text-white rounded-lg font-semibold flex items-center justify-center space-x-2 disabled:opacity-50 transition-colors"
-        >
-          <span>{isSaving ? 'Saving Demo...' : 'Calculate & Save Demo'}</span>
-          <ArrowRight className="h-5 w-5" />
-        </button>
       </form>
     </div>
   )
