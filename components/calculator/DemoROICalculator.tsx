@@ -213,74 +213,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
 
       {/* Three-Column Design */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT: Results Column */}
-        <div className="space-y-6">
-          {currentMetrics && (
-            <>
-              {/* Current Metrics (Gray) */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-200">
-                <h3 className="text-lg font-bold text-neutral-900 mb-4">Current Metrics</h3>
-                <div className="space-y-3">
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Number of Leads</p>
-                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_leads}</p>
-                  </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Number of Sales</p>
-                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_sales}</p>
-                  </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Total Ad Spend</p>
-                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_ad_spend)}</p>
-                  </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">Total Revenue</p>
-                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_revenue)}</p>
-                  </div>
-                  <div className="p-3 bg-neutral-100 rounded-lg border-2 border-neutral-300">
-                    <p className="text-xs text-neutral-600 mb-1">Close Ratio (CR)</p>
-                    <p className="text-lg font-bold text-neutral-900">
-                      {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prospective Metrics (Green) */}
-              {prospectiveMetrics && (
-                <div className="bg-white rounded-2xl shadow-lg p-6 border border-success">
-                  <h3 className="text-lg font-bold text-success-dark mb-4">Prospective Metrics</h3>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Number of Leads</p>
-                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.leads}</p>
-                    </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Number of Sales</p>
-                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.sales}</p>
-                    </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Total Ad Spend</p>
-                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
-                    </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">Total Revenue</p>
-                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
-                    </div>
-                    <div className="p-3 bg-success/10 rounded-lg border-2 border-success">
-                      <p className="text-xs text-success-dark mb-1">Close Ratio (CR)</p>
-                      <p className="text-lg font-bold text-success-dark">
-                        {prospectiveMetrics.conversionRate.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* MIDDLE: Current Marketing ROI (Step 1) */}
+        {/* LEFT: Current Marketing ROI (Step 1) */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-neutral-900">
@@ -422,7 +355,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
           </form>
         </div>
 
-        {/* RIGHT: Prospective Scenario (Step 2) */}
+        {/* MIDDLE: Prospective Scenario (Step 2) */}
         <div className={`bg-white rounded-2xl shadow-lg p-8 border border-neutral-200 transition-opacity ${
           showScenarioForm ? 'opacity-100' : 'opacity-50'
         }`}>
@@ -565,6 +498,73 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
             <div className="flex items-center justify-center h-64 text-neutral-400">
               <ArrowRight className="h-12 w-12" />
             </div>
+          )}
+        </div>
+
+        {/* RIGHT: Results Column */}
+        <div className="space-y-6">
+          {currentMetrics && (
+            <>
+              {/* Current Metrics (Gray) */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-200">
+                <h3 className="text-lg font-bold text-neutral-900 mb-4">Current Metrics</h3>
+                <div className="space-y-3">
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Number of Leads</p>
+                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_leads}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Number of Sales</p>
+                    <p className="text-lg font-bold text-neutral-900">{currentMetrics.current_sales}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Total Ad Spend</p>
+                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_ad_spend)}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">Total Revenue</p>
+                    <p className="text-lg font-bold text-neutral-900">{formatNumber(currentMetrics.current_revenue)}</p>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-lg border-2 border-neutral-300">
+                    <p className="text-xs text-neutral-600 mb-1">Close Ratio (CR)</p>
+                    <p className="text-lg font-bold text-neutral-900">
+                      {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prospective Metrics (Green) */}
+              {prospectiveMetrics && (
+                <div className="bg-white rounded-2xl shadow-lg p-6 border border-success">
+                  <h3 className="text-lg font-bold text-success-dark mb-4">Prospective Metrics</h3>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Number of Leads</p>
+                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.leads}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Number of Sales</p>
+                      <p className="text-lg font-bold text-success-dark">{prospectiveMetrics.sales}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Total Ad Spend</p>
+                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">Total Revenue</p>
+                      <p className="text-lg font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
+                    </div>
+                    <div className="p-3 bg-success/10 rounded-lg border-2 border-success">
+                      <p className="text-xs text-success-dark mb-1">Close Ratio (CR)</p>
+                      <p className="text-lg font-bold text-success-dark">
+                        {prospectiveMetrics.conversionRate.toFixed(2)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
