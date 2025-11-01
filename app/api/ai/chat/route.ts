@@ -444,21 +444,26 @@ async function handleResponsesAPI(params: {
     }
   } else if (output.type === 'message') {
     // Regular text message
-    // Responses API may return content as object with {type, text} or as string
+    // Responses API returns content as array of objects: [{type: 'output_text', text: '...', annotations: []}]
     let messageContent = ''
     console.log('📝 Parsing message content. output.content type:', typeof output.content)
-    console.log('📝 output.content value:', output.content)
-    console.log('📝 output.text value:', output.text)
+    console.log('📝 output.content value:', JSON.stringify(output.content))
+    console.log('📝 Full output:', JSON.stringify(output))
 
-    if (typeof output.content === 'string') {
+    // Content is an array of content items
+    if (Array.isArray(output.content) && output.content.length > 0) {
+      // Get first text content item
+      const textContent = output.content.find((item: any) => item.type === 'output_text' || item.text)
+      if (textContent && textContent.text) {
+        messageContent = textContent.text
+        console.log('✅ Used output.content[].text from array')
+      }
+    } else if (typeof output.content === 'string') {
       messageContent = output.content
       console.log('✅ Used output.content as string')
     } else if (output.content && typeof output.content === 'object' && 'text' in output.content) {
       messageContent = output.content.text
       console.log('✅ Used output.content.text')
-    } else if (output.text) {
-      messageContent = typeof output.text === 'string' ? output.text : (output.text.text || '')
-      console.log('✅ Used output.text')
     }
 
     console.log('📤 Final messageContent:', messageContent)
@@ -586,14 +591,18 @@ async function handleResponsesAPI(params: {
         }]
       }
     } else if (iterationOutput.type === 'message') {
-      // Extract text content properly
+      // Extract text content properly - content is an array
       let messageContent = ''
-      if (typeof iterationOutput.content === 'string') {
+      if (Array.isArray(iterationOutput.content) && iterationOutput.content.length > 0) {
+        // Get first text content item
+        const textContent = iterationOutput.content.find((item: any) => item.type === 'output_text' || item.text)
+        if (textContent && textContent.text) {
+          messageContent = textContent.text
+        }
+      } else if (typeof iterationOutput.content === 'string') {
         messageContent = iterationOutput.content
       } else if (iterationOutput.content && typeof iterationOutput.content === 'object' && 'text' in iterationOutput.content) {
         messageContent = iterationOutput.content.text
-      } else if (iterationOutput.text) {
-        messageContent = typeof iterationOutput.text === 'string' ? iterationOutput.text : (iterationOutput.text.text || '')
       }
 
       aiMessage = {
