@@ -577,7 +577,8 @@ async function handleResponsesAPI(params: {
     }
   }
 
-  const finalResponse = aiMessage.content || 'No response generated.'
+  // Ensure we have content (not tool_calls)
+  const finalResponse = aiMessage.content || (aiMessage.tool_calls ? 'Processing function calls...' : 'No response generated.')
 
   // Save conversation to database
   try {
