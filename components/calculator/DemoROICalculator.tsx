@@ -194,22 +194,6 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
                 )}
               </div>
 
-              {/* Scenario Name */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Scenario Name *
-                </label>
-                <input
-                  {...register('scenario_name')}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-neutral-50"
-                  placeholder="Auto-generated"
-                  readOnly
-                />
-                {errors.scenario_name && (
-                  <p className="text-error text-sm mt-1">{errors.scenario_name.message}</p>
-                )}
-              </div>
-
               {/* Time Period */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -324,6 +308,22 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
             </p>
 
             <div className="space-y-4">
+              {/* Scenario Name */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Scenario Name *
+                </label>
+                <input
+                  {...register('scenario_name')}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-neutral-50"
+                  placeholder="Auto-generated"
+                  readOnly
+                />
+                {errors.scenario_name && (
+                  <p className="text-error text-sm mt-1">{errors.scenario_name.message}</p>
+                )}
+              </div>
+
               {/* Target Conversion Rate */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
