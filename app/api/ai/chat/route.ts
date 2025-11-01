@@ -423,8 +423,11 @@ async function handleResponsesAPI(params: {
   const output = data.output[0]
 
   let aiMessage: any
+  let hasFunctionCall = false
+
   if (output.type === 'function_call') {
-    // Convert function_call to tool_calls format
+    hasFunctionCall = true
+    // Convert function_call to tool_calls format for processing
     aiMessage = {
       role: 'assistant',
       content: '', // Responses API requires string, not null
@@ -491,9 +494,21 @@ async function handleResponsesAPI(params: {
       })
     )
 
-    // Add assistant message and function results to conversation
-    inputMessages.push(aiMessage)
-    inputMessages.push(...functionResults)
+    // Add assistant message (without tool_calls for Responses API) and function results
+    // Responses API doesn't accept tool_calls in input, so just add assistant message with empty content
+    inputMessages.push({
+      role: 'assistant',
+      content: ''
+    })
+
+    // Add function results - Responses API format
+    functionResults.forEach(result => {
+      inputMessages.push({
+        role: 'tool',
+        content: result.content,
+        name: result.name
+      })
+    })
 
     // Call Responses API again with function results
     response = await fetch('https://api.openai.com/v1/responses', {
@@ -539,7 +554,7 @@ async function handleResponsesAPI(params: {
     if (iterationOutput.type === 'function_call') {
       aiMessage = {
         role: 'assistant',
-        content: null,
+        content: '', // Responses API requires string, not null
         tool_calls: [{
           id: iterationOutput.call_id,
           type: 'function',
