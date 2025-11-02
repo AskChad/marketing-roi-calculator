@@ -1,8 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Edit, Save, X, Palette, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import ImageUpload from './ImageUpload'
+
+interface DNSInstructions {
+  type: 'A' | 'CNAME' | 'wildcard'
+  recordType?: string
+  name?: string
+  value?: string
+  message: string
+  instructions?: string
+  ttl?: number
+}
 
 interface Brand {
   id: string
@@ -35,6 +45,7 @@ interface Brand {
   domain_verified?: boolean
   domain_verification_checked_at?: string
   dns_records?: any
+  dnsInstructions?: DNSInstructions
 }
 
 interface BrandsManagementProps {
@@ -47,6 +58,37 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
   const [isCreating, setIsCreating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [verifyingDomain, setVerifyingDomain] = useState<string | null>(null)
+  const [loadingDNS, setLoadingDNS] = useState(false)
+
+  // Fetch DNS configuration for all brands with custom domains on mount
+  useEffect(() => {
+    const fetchDNSConfigs = async () => {
+      setLoadingDNS(true)
+      const brandsWithDNS = await Promise.all(
+        initialBrands.map(async (brand) => {
+          if (brand.domain && !brand.domain.includes('localhost')) {
+            try {
+              const response = await fetch(`/api/admin/brands/${brand.id}/get-dns-config`)
+              if (response.ok) {
+                const data = await response.json()
+                return {
+                  ...brand,
+                  dnsInstructions: data.dnsInstructions
+                }
+              }
+            } catch (error) {
+              console.error(`Failed to fetch DNS config for brand ${brand.id}:`, error)
+            }
+          }
+          return brand
+        })
+      )
+      setBrands(brandsWithDNS)
+      setLoadingDNS(false)
+    }
+
+    fetchDNSConfigs()
+  }, [])
 
   const emptyBrand: Partial<Brand> = {
     name: '',
@@ -91,7 +133,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
     setIsSaving(true)
     try {
       // Remove domain verification fields that don't exist in database yet
-      const { domain_verified, domain_verification_checked_at, dns_records, ...brandData } = editingBrand
+      const { domain_verified, domain_verification_checked_at, dns_records, dnsInstructions, ...brandData } = editingBrand
 
       const response = await fetch('/api/admin/brands', {
         method: isCreating ? 'POST' : 'PUT',
@@ -104,10 +146,23 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
       const data = await response.json()
 
       if (response.ok) {
+        // If brand has a custom domain, fetch DNS configuration from Vercel
+        let brandWithDNS = data
+        if (data.domain && !data.domain.includes('localhost')) {
+          const dnsResponse = await fetch(`/api/admin/brands/${data.id}/get-dns-config`)
+          if (dnsResponse.ok) {
+            const dnsData = await dnsResponse.json()
+            brandWithDNS = {
+              ...data,
+              dnsInstructions: dnsData.dnsInstructions
+            }
+          }
+        }
+
         if (isCreating) {
-          setBrands([data, ...brands])
+          setBrands([brandWithDNS, ...brands])
         } else {
-          setBrands(brands.map(b => b.id === data.id ? data : b))
+          setBrands(brands.map(b => b.id === brandWithDNS.id ? brandWithDNS : b))
         }
         handleCancel()
         alert('Brand saved successfully!')
@@ -433,15 +488,51 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
               {/* Domain Setup Instructions */}
               {isCustomDomain && (
                 <div className="mb-4 space-y-3">
-                  {/* Vercel Deployment URL */}
+                  {/* DNS Configuration Instructions */}
                   <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                    <p className="text-xs font-medium text-neutral-700 mb-1">Point your domain to:</p>
-                    <code className="text-xs font-mono text-blue-700 bg-white px-2 py-1 rounded border border-blue-300 block">
-                      cname.vercel-dns.com
-                    </code>
-                    <p className="text-xs text-neutral-500 mt-2">
-                      Add a CNAME record in your DNS settings pointing to the above address
-                    </p>
+                    <p className="text-xs font-medium text-neutral-700 mb-2">DNS Configuration:</p>
+
+                    {brand.dnsInstructions ? (
+                      <>
+                        {brand.dnsInstructions.type === 'wildcard' ? (
+                          <div className="space-y-2">
+                            <p className="text-xs text-neutral-600">{brand.dnsInstructions.message}</p>
+                            <p className="text-xs text-neutral-500 italic">{brand.dnsInstructions.instructions}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              <div>
+                                <span className="font-medium text-neutral-600">Type:</span>
+                                <code className="ml-1 font-mono text-blue-700">{brand.dnsInstructions.recordType}</code>
+                              </div>
+                              <div>
+                                <span className="font-medium text-neutral-600">Name:</span>
+                                <code className="ml-1 font-mono text-blue-700">{brand.dnsInstructions.name}</code>
+                              </div>
+                              <div>
+                                <span className="font-medium text-neutral-600">TTL:</span>
+                                <code className="ml-1 font-mono text-blue-700">{brand.dnsInstructions.ttl || 3600}</code>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-xs font-medium text-neutral-600">Value:</span>
+                              <code className="text-xs font-mono text-blue-700 bg-white px-2 py-1 rounded border border-blue-300 block mt-1">
+                                {brand.dnsInstructions.value}
+                              </code>
+                            </div>
+                            <p className="text-xs text-neutral-500 mt-2">
+                              {brand.dnsInstructions.message}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs text-neutral-500">Loading DNS configuration...</p>
+                        <p className="text-xs text-neutral-400 italic">Save the brand to fetch DNS settings from Vercel</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Domain Verification Status */}
