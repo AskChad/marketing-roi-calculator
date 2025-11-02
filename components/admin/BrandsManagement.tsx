@@ -90,12 +90,15 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
 
     setIsSaving(true)
     try {
+      // Remove domain verification fields that don't exist in database yet
+      const { domain_verified, domain_verification_checked_at, dns_records, ...brandData } = editingBrand
+
       const response = await fetch('/api/admin/brands', {
         method: isCreating ? 'POST' : 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editingBrand),
+        body: JSON.stringify(brandData),
       })
 
       const data = await response.json()
