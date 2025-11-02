@@ -423,36 +423,50 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
                 </span>
               </div>
 
-              {/* Domain Verification Status */}
+              {/* Domain Setup Instructions */}
               {isCustomDomain && (
-                <div className="mb-4 p-3 rounded-lg bg-neutral-50 border border-neutral-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-neutral-600">Domain Status:</span>
-                    {brand.domain_verified ? (
-                      <span className="flex items-center text-xs text-success-dark">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Verified
-                      </span>
-                    ) : brand.domain_verification_checked_at ? (
-                      <span className="flex items-center text-xs text-warning-dark">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Pending
-                      </span>
-                    ) : (
-                      <span className="flex items-center text-xs text-neutral-500">
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Not Checked
-                      </span>
-                    )}
+                <div className="mb-4 space-y-3">
+                  {/* Vercel Deployment URL */}
+                  <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                    <p className="text-xs font-medium text-neutral-700 mb-1">Point your domain to:</p>
+                    <code className="text-xs font-mono text-blue-700 bg-white px-2 py-1 rounded border border-blue-300 block">
+                      cname.vercel-dns.com
+                    </code>
+                    <p className="text-xs text-neutral-500 mt-2">
+                      Add a CNAME record in your DNS settings pointing to the above address
+                    </p>
                   </div>
-                  <button
-                    onClick={() => handleVerifyDomain(brand.id)}
-                    disabled={verifyingDomain === brand.id}
-                    className="w-full px-2 py-1 text-xs bg-white border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50 transition flex items-center justify-center disabled:opacity-50"
-                  >
-                    <RefreshCw className={`h-3 w-3 mr-1 ${verifyingDomain === brand.id ? 'animate-spin' : ''}`} />
-                    {verifyingDomain === brand.id ? 'Checking...' : 'Verify Domain'}
-                  </button>
+
+                  {/* Domain Verification Status */}
+                  <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-neutral-600">Domain Status:</span>
+                      {brand.domain_verified ? (
+                        <span className="flex items-center text-xs text-success-dark">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Verified
+                        </span>
+                      ) : brand.domain_verification_checked_at ? (
+                        <span className="flex items-center text-xs text-warning-dark">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Pending
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-xs text-neutral-500">
+                          <XCircle className="h-3 w-3 mr-1" />
+                          Not Checked
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleVerifyDomain(brand.id)}
+                      disabled={verifyingDomain === brand.id}
+                      className="w-full px-2 py-1 text-xs bg-white border border-neutral-300 text-neutral-700 rounded hover:bg-neutral-50 transition flex items-center justify-center disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-3 w-3 mr-1 ${verifyingDomain === brand.id ? 'animate-spin' : ''}`} />
+                      {verifyingDomain === brand.id ? 'Checking...' : 'Verify Domain'}
+                    </button>
+                  </div>
                 </div>
               )}
 
