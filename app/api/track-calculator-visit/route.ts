@@ -19,6 +19,10 @@ export async function POST(request: NextRequest) {
     const userAgent = getUserAgent(request)
     const referrer = getReferrer(request)
 
+    // Get page path from request body
+    const body = await request.json().catch(() => ({}))
+    const pagePath = body.page || null
+
     // Fetch geolocation data
     const geoData = await getIPGeolocation(ipAddress)
 
@@ -27,23 +31,32 @@ export async function POST(request: NextRequest) {
     const userId = user?.id || null
 
     // Insert visit record with mapped geo fields
+    const visitData: any = {
+      tracking_id: trackingId,
+      user_id: userId,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      referrer: referrer,
+      country: geoData?.country_name || null,
+      region: geoData?.state_prov || null,
+      city: geoData?.city || null,
+      zipcode: geoData?.zipcode || null,
+      latitude: geoData?.latitude ? parseFloat(geoData.latitude) : null,
+      longitude: geoData?.longitude ? parseFloat(geoData.longitude) : null,
+      timezone: geoData?.time_zone?.name || null,
+    }
+
+    // Add optional fields if they exist in the table
+    if (brand?.id) {
+      visitData.brand_id = brand.id
+    }
+    if (pagePath) {
+      visitData.page_path = pagePath
+    }
+
     const { error: insertError } = await supabase
       .from('calculator_visits')
-      .insert([{
-        tracking_id: trackingId,
-        user_id: userId,
-        brand_id: brand.id,
-        ip_address: ipAddress,
-        user_agent: userAgent,
-        referrer: referrer,
-        country: geoData?.country_name || null,
-        region: geoData?.state_prov || null,
-        city: geoData?.city || null,
-        zipcode: geoData?.zipcode || null,
-        latitude: geoData?.latitude ? parseFloat(geoData.latitude) : null,
-        longitude: geoData?.longitude ? parseFloat(geoData.longitude) : null,
-        timezone: geoData?.time_zone?.name || null,
-      }] as any)
+      .insert([visitData] as any)
 
     if (insertError) {
       console.error('Error tracking calculator visit:', insertError)

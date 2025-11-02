@@ -3,6 +3,7 @@ import './globals.css'
 import { getBrandFromRequest } from '@/lib/brand/getBrand'
 import { BrandProvider } from '@/lib/brand/BrandContext'
 import BrandTheme from '@/components/BrandTheme'
+import PageViewTracker from '@/components/PageViewTracker'
 
 export const metadata: Metadata = {
   title: 'Marketing ROI Calculator | Optimize Your Ad Spend',
@@ -23,6 +24,7 @@ export default async function RootLayout({
       <body className="font-sans">
         <BrandProvider brand={brand}>
           <BrandTheme />
+          <PageViewTracker />
           {children}
         </BrandProvider>
       </body>
