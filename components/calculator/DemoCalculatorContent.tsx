@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 import DemoROICalculator from './DemoROICalculator'
 
 interface DemoCalculatorContentProps {
@@ -10,13 +11,18 @@ interface DemoCalculatorContentProps {
 }
 
 export default function DemoCalculatorContent({ userId, existingDemos: initialDemos }: DemoCalculatorContentProps) {
-  const [savedDemos, setSavedDemos] = useState(initialDemos)
+  // Only show scenarios from current session (not from initialDemos)
+  const [savedDemos, setSavedDemos] = useState<any[]>([])
   const [refreshKey, setRefreshKey] = useState(0)
 
   const handleDemoSaved = (newDemo: any) => {
     // Add new demo to the top of the list
     setSavedDemos([newDemo, ...savedDemos])
     setRefreshKey(prev => prev + 1)
+  }
+
+  const handleClearScenarios = () => {
+    setSavedDemos([])
   }
 
   return (
@@ -33,7 +39,25 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
       {/* Saved Demo Scenarios */}
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-neutral-900">My Scenarios</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-neutral-900">My Scenarios</h2>
+            {savedDemos.length > 0 && (
+              <Link
+                href="/roi-analytics"
+                className="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+              >
+                This one takes to MY ROI analytics
+              </Link>
+            )}
+          </div>
+          {savedDemos.length > 0 && (
+            <button
+              onClick={handleClearScenarios}
+              className="px-4 py-2 bg-white border-2 border-neutral-300 hover:border-neutral-400 text-neutral-900 text-sm font-medium rounded-lg transition"
+            >
+              Clear Scenarios
+            </button>
+          )}
         </div>
 
         {savedDemos.length === 0 ? (
@@ -84,19 +108,20 @@ function DemoScenarioCard({ scenario }: { scenario: any }) {
   }
 
   return (
-    <div className="border border-neutral-200 rounded-lg p-6 hover:shadow-md hover:border-brand-primary transition">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h4 className="font-semibold text-neutral-900 text-lg mb-1">
-            {scenario.company_name}
-          </h4>
-          <p className="text-sm text-neutral-600 mb-1">{scenario.scenario_name}</p>
-          <p className="text-sm text-neutral-500">
-            {formatLongDate(scenario.created_at)}
-          </p>
+    <Link href={`/scenario/${scenario.id}`}>
+      <div className="border border-neutral-200 rounded-lg p-6 hover:shadow-md hover:border-brand-primary transition cursor-pointer">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h4 className="font-semibold text-neutral-900 text-lg mb-1 hover:text-brand-primary transition">
+              {scenario.company_name}
+            </h4>
+            <p className="text-sm text-neutral-600 mb-1">{scenario.scenario_name}</p>
+            <p className="text-sm text-neutral-500">
+              {formatLongDate(scenario.created_at)}
+            </p>
+          </div>
+          <ArrowRight className="h-5 w-5 text-brand-primary" />
         </div>
-        <TrendingUp className="h-5 w-5 text-brand-primary" />
-      </div>
 
       <div className="grid grid-cols-7 gap-3 mb-4">
         <div>
@@ -149,6 +174,7 @@ function DemoScenarioCard({ scenario }: { scenario: any }) {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </Link>
   )
 }

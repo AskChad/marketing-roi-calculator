@@ -74,7 +74,8 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
     const companyDemos = existingDemos.filter(demo =>
       demo.company_name.toLowerCase() === company.toLowerCase()
     )
-    const version = companyDemos.length + 1
+    // Also count prospective history entries for this session
+    const version = companyDemos.length + prospectiveHistory.length + 1
 
     return `${company} - ${dateStr} - ${version}`
   }
