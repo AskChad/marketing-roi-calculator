@@ -212,7 +212,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
       )}
 
       {/* Three-Column Design */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_2fr] gap-8">
         {/* LEFT: Current Marketing ROI (Step 1) */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-neutral-200">
           <div className="flex items-center justify-between mb-6">
@@ -508,39 +508,39 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
               {/* Current Metrics (Gray) - Horizontal */}
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-200">
                 <h3 className="text-lg font-bold text-neutral-900 mb-4">Current</h3>
-                <div className="grid grid-cols-7 gap-2">
-                  <div className="p-2 bg-neutral-100 rounded-lg">
+                <div className="grid grid-cols-7 gap-3">
+                  <div className="p-3 bg-neutral-100 rounded-lg">
                     <p className="text-xs text-neutral-600 mb-1">Leads</p>
-                    <p className="font-bold text-neutral-900 text-sm">{currentMetrics.current_leads.toLocaleString()}</p>
+                    <p className="font-bold text-neutral-900">{currentMetrics.current_leads.toLocaleString()}</p>
                   </div>
-                  <div className="p-2 bg-neutral-100 rounded-lg">
+                  <div className="p-3 bg-neutral-100 rounded-lg">
                     <p className="text-xs text-neutral-600 mb-1">Sales</p>
-                    <p className="font-bold text-neutral-900 text-sm">{currentMetrics.current_sales.toLocaleString()}</p>
+                    <p className="font-bold text-neutral-900">{currentMetrics.current_sales.toLocaleString()}</p>
                   </div>
-                  <div className="p-2 bg-neutral-100 rounded-lg">
+                  <div className="p-3 bg-neutral-100 rounded-lg">
                     <p className="text-xs text-neutral-600 mb-1">Ad Spend</p>
-                    <p className="font-bold text-neutral-900 text-sm">{formatNumber(currentMetrics.current_ad_spend)}</p>
+                    <p className="font-bold text-neutral-900">{formatNumber(currentMetrics.current_ad_spend)}</p>
                   </div>
-                  <div className="p-2 bg-neutral-100 rounded-lg">
+                  <div className="p-3 bg-neutral-100 rounded-lg">
                     <p className="text-xs text-neutral-600 mb-1">Revenue</p>
-                    <p className="font-bold text-neutral-900 text-sm">{formatNumber(currentMetrics.current_revenue)}</p>
+                    <p className="font-bold text-neutral-900">{formatNumber(currentMetrics.current_revenue)}</p>
                   </div>
-                  <div className="p-2 bg-neutral-100 rounded-lg border-2 border-neutral-300">
-                    <p className="text-xs text-neutral-600 mb-1">CR</p>
-                    <p className="font-bold text-neutral-900 text-sm">
-                      {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
+                  <div className="p-3 bg-neutral-100 rounded-lg border-2 border-neutral-300">
+                    <p className="text-xs text-neutral-600 mb-1">CR %</p>
+                    <p className="font-bold text-neutral-900">
+                      {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}
                     </p>
                   </div>
-                  <div className="p-2 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">CPL</p>
-                    <p className="font-bold text-neutral-900 text-sm">
-                      ${(currentMetrics.current_ad_spend / currentMetrics.current_leads).toFixed(2)}
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">CPL $</p>
+                    <p className="font-bold text-neutral-900">
+                      {(currentMetrics.current_ad_spend / currentMetrics.current_leads).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <div className="p-2 bg-neutral-100 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-1">CPA</p>
-                    <p className="font-bold text-neutral-900 text-sm">
-                      ${(currentMetrics.current_ad_spend / currentMetrics.current_sales).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <div className="p-3 bg-neutral-100 rounded-lg">
+                    <p className="text-xs text-neutral-600 mb-1">CPA $</p>
+                    <p className="font-bold text-neutral-900">
+                      {(currentMetrics.current_ad_spend / currentMetrics.current_sales).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
@@ -550,39 +550,39 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
               {prospectiveMetrics && (
                 <div className="bg-white rounded-2xl shadow-lg p-6 border border-success">
                   <h3 className="text-lg font-bold text-success-dark mb-4">Prospective</h3>
-                  <div className="grid grid-cols-7 gap-2">
-                    <div className="p-2 bg-success/10 rounded-lg">
+                  <div className="grid grid-cols-7 gap-3">
+                    <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Leads</p>
-                      <p className="font-bold text-success-dark text-sm">{prospectiveMetrics.leads.toLocaleString()}</p>
+                      <p className="font-bold text-success-dark">{prospectiveMetrics.leads.toLocaleString()}</p>
                     </div>
-                    <div className="p-2 bg-success/10 rounded-lg">
+                    <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Sales</p>
-                      <p className="font-bold text-success-dark text-sm">{prospectiveMetrics.sales.toLocaleString()}</p>
+                      <p className="font-bold text-success-dark">{prospectiveMetrics.sales.toLocaleString()}</p>
                     </div>
-                    <div className="p-2 bg-success/10 rounded-lg">
+                    <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Ad Spend</p>
-                      <p className="font-bold text-success-dark text-sm">{formatNumber(prospectiveMetrics.adSpend)}</p>
+                      <p className="font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
                     </div>
-                    <div className="p-2 bg-success/10 rounded-lg">
+                    <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Revenue</p>
-                      <p className="font-bold text-success-dark text-sm">{formatNumber(prospectiveMetrics.revenue)}</p>
+                      <p className="font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
                     </div>
-                    <div className="p-2 bg-success/10 rounded-lg border-2 border-success">
-                      <p className="text-xs text-success-dark mb-1">CR</p>
-                      <p className="font-bold text-success-dark text-sm">
-                        {prospectiveMetrics.conversionRate.toFixed(2)}%
+                    <div className="p-3 bg-success/10 rounded-lg border-2 border-success">
+                      <p className="text-xs text-success-dark mb-1">CR %</p>
+                      <p className="font-bold text-success-dark">
+                        {prospectiveMetrics.conversionRate.toFixed(2)}
                       </p>
                     </div>
-                    <div className="p-2 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">CPL</p>
-                      <p className="font-bold text-success-dark text-sm">
-                        ${prospectiveMetrics.cpl.toFixed(2)}
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">CPL $</p>
+                      <p className="font-bold text-success-dark">
+                        {prospectiveMetrics.cpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <div className="p-2 bg-success/10 rounded-lg">
-                      <p className="text-xs text-success-dark mb-1">CPA</p>
-                      <p className="font-bold text-success-dark text-sm">
-                        ${prospectiveMetrics.cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <p className="text-xs text-success-dark mb-1">CPA $</p>
+                      <p className="font-bold text-success-dark">
+                        {prospectiveMetrics.cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                   </div>
