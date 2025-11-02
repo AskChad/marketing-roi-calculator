@@ -4,6 +4,10 @@ import { getOrCreateTrackingId, setTrackingCookie } from '@/lib/tracking'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 import { getBrandFromRequest } from '@/lib/brand/getBrand'
 
+// Use edge runtime for faster cold starts
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()

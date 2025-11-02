@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import DashboardContent from '@/components/dashboard/DashboardContent'
 
+// Force dynamic rendering for user-specific content
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 

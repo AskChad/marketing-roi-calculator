@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
 import AdminContent from '@/components/admin/AdminContent'
 
+// Force dynamic rendering for admin content
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface CalculatorVisit {
   id: string
   tracking_id: string | null
