@@ -148,16 +148,21 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
       const data = await response.json()
 
       if (response.ok) {
-        // If brand has a custom domain, fetch DNS configuration from Vercel
+        // If brand has a custom domain, fetch DNS configuration from Vercel (non-blocking)
         let brandWithDNS = data
         if (data.domain && !data.domain.includes('localhost')) {
-          const dnsResponse = await fetch(`/api/admin/brands/${data.id}/get-dns-config`)
-          if (dnsResponse.ok) {
-            const dnsData = await dnsResponse.json()
-            brandWithDNS = {
-              ...data,
-              dnsInstructions: dnsData.dnsInstructions
+          try {
+            const dnsResponse = await fetch(`/api/admin/brands/${data.id}/get-dns-config`)
+            if (dnsResponse.ok) {
+              const dnsData = await dnsResponse.json()
+              brandWithDNS = {
+                ...data,
+                dnsInstructions: dnsData.dnsInstructions
+              }
             }
+          } catch (dnsError) {
+            console.warn('Failed to fetch DNS config, continuing without it:', dnsError)
+            // Continue with save even if DNS fetch fails
           }
         }
 
@@ -175,7 +180,11 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
       }
     } catch (error) {
       console.error('Error saving brand:', error)
-      alert(`Error saving brand: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      const detailedError = error instanceof TypeError && errorMsg === 'Failed to fetch'
+        ? 'Network error - please check your connection and try again'
+        : errorMsg
+      alert(`Error saving brand: ${detailedError}`)
     } finally {
       setIsSaving(false)
     }
