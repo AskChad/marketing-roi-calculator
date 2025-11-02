@@ -36,6 +36,7 @@ interface DemoROICalculatorProps {
 export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }: DemoROICalculatorProps) {
   const [currentMetrics, setCurrentMetrics] = useState<CurrentROIFormData | null>(null)
   const [prospectiveMetrics, setProspectiveMetrics] = useState<any>(null)
+  const [prospectiveHistory, setProspectiveHistory] = useState<any[]>([])
   const [showScenarioForm, setShowScenarioForm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -121,7 +122,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
       const cpaImprovementPercent = ((currentCPA - newCPA) / currentCPA) * 100
 
       // Store prospective metrics for display
-      setProspectiveMetrics({
+      const prospectiveData = {
         leads: adjustedLeads,
         sales: newSales,
         adSpend: adjustedAdSpend,
@@ -129,7 +130,12 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
         conversionRate: data.target_conversion_rate,
         cpl: newCPL,
         cpa: newCPA,
-      })
+        scenarioName: data.scenario_name,
+      }
+
+      setProspectiveMetrics(prospectiveData)
+      // Add to history (newest first)
+      setProspectiveHistory(prev => [prospectiveData, ...prev])
 
       const calculatedData = {
         company_name: currentMetrics.company_name,
@@ -188,6 +194,11 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleClearResults = () => {
+    setProspectiveMetrics(null)
+    setProspectiveHistory([])
   }
 
   const formatNumber = (num: number): string => {
@@ -507,7 +518,17 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
             <>
               {/* Current Metrics (Gray) - Horizontal */}
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-200">
-                <h3 className="text-lg font-bold text-neutral-900 mb-4">Current</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-neutral-900">Current</h3>
+                  {prospectiveHistory.length > 0 && (
+                    <button
+                      onClick={handleClearResults}
+                      className="px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-neutral-900 text-sm font-medium rounded transition"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-7 gap-3">
                   <div className="p-3 bg-neutral-100 rounded-lg">
                     <p className="text-xs text-neutral-600 mb-1">Leads</p>
@@ -546,48 +567,50 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
                 </div>
               </div>
 
-              {/* Prospective Metrics (Green) - Horizontal */}
-              {prospectiveMetrics && (
-                <div className="bg-white rounded-2xl shadow-lg p-6 border border-success">
-                  <h3 className="text-lg font-bold text-success-dark mb-4">Prospective</h3>
+              {/* Prospective Metrics History (Green) - Stacked */}
+              {prospectiveHistory.map((metrics, index) => (
+                <div key={index} className="bg-white rounded-2xl shadow-lg p-6 border border-success">
+                  <h3 className="text-lg font-bold text-success-dark mb-4">
+                    Prospective {prospectiveHistory.length > 1 ? prospectiveHistory.length - index : ''}
+                  </h3>
                   <div className="grid grid-cols-7 gap-3">
                     <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Leads</p>
-                      <p className="font-bold text-success-dark">{prospectiveMetrics.leads.toLocaleString()}</p>
+                      <p className="font-bold text-success-dark">{metrics.leads.toLocaleString()}</p>
                     </div>
                     <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Sales</p>
-                      <p className="font-bold text-success-dark">{prospectiveMetrics.sales.toLocaleString()}</p>
+                      <p className="font-bold text-success-dark">{metrics.sales.toLocaleString()}</p>
                     </div>
                     <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Ad Spend</p>
-                      <p className="font-bold text-success-dark">{formatNumber(prospectiveMetrics.adSpend)}</p>
+                      <p className="font-bold text-success-dark">{formatNumber(metrics.adSpend)}</p>
                     </div>
                     <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">Revenue</p>
-                      <p className="font-bold text-success-dark">{formatNumber(prospectiveMetrics.revenue)}</p>
+                      <p className="font-bold text-success-dark">{formatNumber(metrics.revenue)}</p>
                     </div>
                     <div className="p-3 bg-success/10 rounded-lg border-2 border-success">
                       <p className="text-xs text-success-dark mb-1">CR %</p>
                       <p className="font-bold text-success-dark">
-                        {prospectiveMetrics.conversionRate.toFixed(2)}
+                        {metrics.conversionRate.toFixed(2)}
                       </p>
                     </div>
                     <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">CPL $</p>
                       <p className="font-bold text-success-dark">
-                        {prospectiveMetrics.cpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {metrics.cpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                     <div className="p-3 bg-success/10 rounded-lg">
                       <p className="text-xs text-success-dark mb-1">CPA $</p>
                       <p className="font-bold text-success-dark">
-                        {prospectiveMetrics.cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {metrics.cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
                   </div>
                 </div>
-              )}
+              ))}
             </>
           )}
         </div>
