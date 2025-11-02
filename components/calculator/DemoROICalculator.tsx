@@ -377,27 +377,27 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
             <form onSubmit={scenarioForm.handleSubmit(handleStep2Submit)} className="space-y-6">
               {/* Current Metrics Display */}
               <div className="grid grid-cols-4 gap-3">
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
-                  <p className="text-xs text-neutral-600 mb-1">Current CR</p>
-                  <p className="text-lg font-bold text-neutral-900">
-                    {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}%
+                <div className="p-2 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">CR %</p>
+                  <p className="text-base font-bold text-neutral-900">
+                    {((currentMetrics.current_sales / currentMetrics.current_leads) * 100).toFixed(2)}
                   </p>
                 </div>
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
-                  <p className="text-xs text-neutral-600 mb-1">Current CPL</p>
-                  <p className="text-lg font-bold text-neutral-900">
-                    ${(currentMetrics.current_ad_spend / currentMetrics.current_leads).toFixed(2)}
+                <div className="p-2 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">CPL $</p>
+                  <p className="text-base font-bold text-neutral-900">
+                    {(currentMetrics.current_ad_spend / currentMetrics.current_leads).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
-                  <p className="text-xs text-neutral-600 mb-1">Current CPA</p>
-                  <p className="text-lg font-bold text-neutral-900">
-                    ${(currentMetrics.current_ad_spend / currentMetrics.current_sales).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <div className="p-2 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">CPA $</p>
+                  <p className="text-base font-bold text-neutral-900">
+                    {(currentMetrics.current_ad_spend / currentMetrics.current_sales).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <div className="p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
-                  <p className="text-xs text-neutral-600 mb-1">Current Revenue</p>
-                  <p className="text-lg font-bold text-neutral-900">
+                <div className="p-2 bg-neutral-50 border border-neutral-200 rounded-lg">
+                  <p className="text-xs text-neutral-600 mb-1">Revenue</p>
+                  <p className="text-base font-bold text-neutral-900">
                     {formatNumber(currentMetrics.current_revenue)}
                   </p>
                 </div>
