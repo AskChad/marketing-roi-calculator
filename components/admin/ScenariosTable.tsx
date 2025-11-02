@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Search, Filter, Eye, X, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 interface Scenario {
@@ -280,6 +280,11 @@ export default function ScenariosTable({ scenarios }: ScenariosTableProps) {
   }
 
   const hasActiveFilters = searchTerm || dateFrom || dateTo || Object.keys(numericFilters).length > 0
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, dateFrom, dateTo, numericFilters])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredScenarios.length / pageSize)

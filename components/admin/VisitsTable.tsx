@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Search, Filter, Eye, EyeOff, X, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 interface LeadCapture {
@@ -162,7 +162,9 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
   const hasActiveFilters = searchTerm || ipFilter || dateFrom || dateTo
 
   // Reset to page 1 when filters change
-  const resetPage = () => setCurrentPage(1)
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, ipFilter, dateFrom, dateTo])
 
   // Pagination logic
   const totalPages = Math.ceil(filteredVisits.length / pageSize)
