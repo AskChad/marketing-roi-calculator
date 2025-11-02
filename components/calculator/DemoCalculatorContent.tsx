@@ -70,6 +70,19 @@ function DemoScenarioCard({ scenario }: { scenario: any }) {
     return `${month} ${day}, ${year}`
   }
 
+  const formatNumber = (num: number): string => {
+    const absNum = Math.abs(num)
+    if (absNum >= 1000000) {
+      return '$' + (num / 1000000).toFixed(1) + 'M'
+    } else if (absNum >= 10000) {
+      return '$' + Math.round(num / 1000) + 'k'
+    } else if (absNum >= 1000) {
+      return '$' + Math.round(num).toLocaleString()
+    } else {
+      return '$' + num.toFixed(2)
+    }
+  }
+
   return (
     <div className="border border-neutral-200 rounded-lg p-6 hover:shadow-md hover:border-brand-primary transition">
       <div className="flex items-start justify-between mb-4">
@@ -85,17 +98,48 @@ function DemoScenarioCard({ scenario }: { scenario: any }) {
         <TrendingUp className="h-5 w-5 text-brand-primary" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-7 gap-3 mb-4">
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">Leads</p>
+          <p className="font-semibold text-neutral-900">{scenario.current_leads.toLocaleString()}</p>
+        </div>
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">Sales</p>
+          <p className="font-semibold text-neutral-900">{scenario.new_sales.toLocaleString()}</p>
+        </div>
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">Ad Spend</p>
+          <p className="font-semibold text-neutral-900">{formatNumber(scenario.current_ad_spend)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">Revenue</p>
+          <p className="font-semibold text-neutral-900">{formatNumber(scenario.new_revenue)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">CR %</p>
+          <p className="font-semibold text-neutral-900">{scenario.target_conversion_rate.toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">CPL $</p>
+          <p className="font-semibold text-neutral-900">{scenario.new_cpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        </div>
+        <div>
+          <p className="text-xs text-neutral-600 mb-1">CPA $</p>
+          <p className="font-semibold text-neutral-900">{scenario.new_cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-neutral-200">
         <div>
           <p className="text-xs text-neutral-600 mb-1">Sales Increase</p>
-          <p className="font-semibold text-neutral-900">
+          <p className="font-semibold text-success-dark">
             +{scenario.sales_increase}
           </p>
         </div>
         <div>
           <p className="text-xs text-neutral-600 mb-1">Revenue Increase</p>
-          <p className="font-semibold text-neutral-900">
-            ${(scenario.revenue_increase / 1000).toFixed(1)}k
+          <p className="font-semibold text-success-dark">
+            +{formatNumber(scenario.revenue_increase)}
           </p>
         </div>
         <div>
