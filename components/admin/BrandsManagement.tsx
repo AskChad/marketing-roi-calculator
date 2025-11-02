@@ -98,20 +98,24 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
         body: JSON.stringify(editingBrand),
       })
 
+      const data = await response.json()
+
       if (response.ok) {
-        const savedBrand = await response.json()
         if (isCreating) {
-          setBrands([savedBrand, ...brands])
+          setBrands([data, ...brands])
         } else {
-          setBrands(brands.map(b => b.id === savedBrand.id ? savedBrand : b))
+          setBrands(brands.map(b => b.id === data.id ? data : b))
         }
         handleCancel()
+        alert('Brand saved successfully!')
       } else {
-        alert('Failed to save brand')
+        const errorMessage = data.error || data.message || 'Failed to save brand'
+        console.error('API Error:', errorMessage, data)
+        alert(`Failed to save brand: ${errorMessage}`)
       }
     } catch (error) {
       console.error('Error saving brand:', error)
-      alert('Error saving brand')
+      alert(`Error saving brand: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsSaving(false)
     }
