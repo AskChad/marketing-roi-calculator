@@ -195,7 +195,7 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
     if (absNum >= 1000000) {
       return '$' + (num / 1000000).toFixed(1) + 'M'
     } else if (absNum >= 10000) {
-      return '$' + (num / 1000).toFixed(1) + 'k'
+      return '$' + Math.round(num / 1000) + 'k'
     } else if (absNum >= 1000) {
       return '$' + Math.round(num).toLocaleString()
     } else {
