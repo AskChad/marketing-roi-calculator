@@ -223,31 +223,31 @@ function ScenarioCard({ scenario }: { scenario: any }) {
         <div className="grid grid-cols-7 gap-3 mb-4">
           <div>
             <p className="text-xs text-neutral-600 mb-1">Leads</p>
-            <p className="font-semibold text-neutral-900">{scenario.current_leads.toLocaleString()}</p>
+            <p className="font-semibold text-neutral-900">{scenario.current_leads?.toLocaleString() || 'N/A'}</p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">Sales</p>
-            <p className="font-semibold text-neutral-900">{scenario.new_sales.toLocaleString()}</p>
+            <p className="font-semibold text-neutral-900">{scenario.new_sales?.toLocaleString() || 'N/A'}</p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">Ad Spend</p>
-            <p className="font-semibold text-neutral-900">{formatNumber(scenario.current_ad_spend)}</p>
+            <p className="font-semibold text-neutral-900">{scenario.current_ad_spend ? formatNumber(scenario.current_ad_spend) : 'N/A'}</p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">Revenue</p>
-            <p className="font-semibold text-neutral-900">{formatNumber(scenario.new_revenue)}</p>
+            <p className="font-semibold text-neutral-900">{scenario.new_revenue ? formatNumber(scenario.new_revenue) : 'N/A'}</p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">CR %</p>
-            <p className="font-semibold text-neutral-900">{scenario.target_conversion_rate.toFixed(2)}</p>
+            <p className="font-semibold text-neutral-900">{scenario.target_conversion_rate?.toFixed(2) || 'N/A'}</p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">CPL $</p>
-            <p className="font-semibold text-neutral-900">{scenario.new_cpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="font-semibold text-neutral-900">{scenario.new_cpl ? scenario.new_cpl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}</p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">CPA $</p>
-            <p className="font-semibold text-neutral-900">{scenario.new_cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="font-semibold text-neutral-900">{scenario.new_cpa ? scenario.new_cpa.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'N/A'}</p>
           </div>
         </div>
 
@@ -255,19 +255,19 @@ function ScenarioCard({ scenario }: { scenario: any }) {
           <div>
             <p className="text-xs text-neutral-600 mb-1">Sales Increase</p>
             <p className="font-semibold text-success-dark">
-              +{scenario.sales_increase}
+              +{scenario.sales_increase || 0}
             </p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">Revenue Increase</p>
             <p className="font-semibold text-success-dark">
-              +{formatNumber(scenario.revenue_increase)}
+              +{scenario.revenue_increase ? formatNumber(scenario.revenue_increase) : '$0'}
             </p>
           </div>
           <div>
             <p className="text-xs text-neutral-600 mb-1">CPA Improvement</p>
             <p className="font-semibold text-success-dark">
-              {scenario.cpa_improvement_percent.toFixed(1)}%
+              {scenario.cpa_improvement_percent?.toFixed(1) || '0.0'}%
             </p>
           </div>
         </div>
