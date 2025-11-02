@@ -17,13 +17,15 @@ interface AdminContentProps {
   brands: any[]
 }
 
-type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands' | 'reports' | 'openai'
+type ManagementSection = 'overview' | 'users' | 'scenarios' | 'ghl' | 'visits' | 'brands' | 'reports' | 'openai' | 'database'
 
 export default function AdminContent({ users, scenarios, ghlSettings, calculatorVisits, brands }: AdminContentProps) {
   const [activeSection, setActiveSection] = useState<ManagementSection>('overview')
   const [showNewUserModal, setShowNewUserModal] = useState(false)
   const [isCreatingUser, setIsCreatingUser] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [isClearingCache, setIsClearingCache] = useState(false)
+  const [cacheMessage, setCacheMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [newUserData, setNewUserData] = useState({
     email: '',
     password: '',
@@ -45,6 +47,48 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
   const [editUserError, setEditUserError] = useState('')
   const [editUserSuccess, setEditUserSuccess] = useState('')
   const isGHLConnected = ghlSettings.find(s => s.setting_key === 'ghl_connected')?.setting_value === 'true'
+
+  const handleClearCache = async () => {
+    if (!confirm('Are you sure you want to clear the application cache? This will force all pages to re-fetch data on the next visit.')) {
+      return
+    }
+
+    try {
+      setIsClearingCache(true)
+      setCacheMessage(null)
+
+      const response = await fetch('/api/admin/clear-cache', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cacheType: 'all' }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to clear cache')
+      }
+
+      setCacheMessage({
+        type: 'success',
+        text: `Cache cleared successfully! Cleared ${data.clearedItems.length} items.`
+      })
+
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setCacheMessage(null)
+      }, 5000)
+    } catch (error: any) {
+      setCacheMessage({
+        type: 'error',
+        text: error.message || 'Failed to clear cache'
+      })
+    } finally {
+      setIsClearingCache(false)
+    }
+  }
 
   const handleCreateUser = async () => {
     try {
@@ -318,6 +362,26 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
                 </span>
               </div>
             </button>
+
+            {/* Database Settings Card */}
+            <button
+              onClick={() => setActiveSection('database')}
+              className="bg-gradient-to-br from-slate-100 to-gray-100 border-2 border-slate-500 rounded-2xl p-8 text-left hover:shadow-xl transition-all hover:scale-105 group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <Database className="h-12 w-12 text-slate-600" />
+                <ChevronRight className="h-6 w-6 text-slate-600 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">Database Settings</h3>
+              <p className="text-neutral-600 mb-4">
+                Manage database cache, performance optimizations, and system maintenance
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-slate-600">
+                  Cache Management
+                </span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -462,6 +526,97 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             <h3 className="text-2xl font-bold text-neutral-900">OpenAI Configuration</h3>
           </div>
           <OpenAISettings />
+        </div>
+      )}
+
+      {/* Database Settings Section */}
+      {activeSection === 'database' && (
+        <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
+          <div className="flex items-center mb-6">
+            <Database className="h-6 w-6 text-slate-600 mr-3" />
+            <h3 className="text-2xl font-bold text-neutral-900">Database Settings</h3>
+          </div>
+
+          <div className="space-y-6">
+            {/* Cache Management Section */}
+            <div className="border border-neutral-200 rounded-lg p-6">
+              <h4 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center">
+                <Database className="h-5 w-5 mr-2 text-slate-600" />
+                Cache Management
+              </h4>
+              <p className="text-sm text-neutral-600 mb-4">
+                Clear the application cache to force all pages to re-fetch data. This is useful after making database changes or to resolve caching issues.
+              </p>
+
+              {/* Success/Error Message */}
+              {cacheMessage && (
+                <div className={`mb-4 p-3 rounded-lg border ${
+                  cacheMessage.type === 'success'
+                    ? 'bg-success-light/20 border-success text-success-dark'
+                    : 'bg-error-light/20 border-error text-error-dark'
+                }`}>
+                  {cacheMessage.text}
+                </div>
+              )}
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleClearCache}
+                  disabled={isClearingCache}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {isClearingCache ? (
+                    <>
+                      <Loader className="h-5 w-5 animate-spin" />
+                      <span>Clearing Cache...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Database className="h-5 w-5" />
+                      <span>Clear Application Cache</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-800">
+                  <strong>Note:</strong> This will clear Next.js cache for all routes. Users may experience slightly slower page loads on their next visit as data is re-fetched.
+                </p>
+              </div>
+            </div>
+
+            {/* Performance Info Section */}
+            <div className="border border-neutral-200 rounded-lg p-6 bg-gradient-to-br from-neutral-50 to-white">
+              <h4 className="text-lg font-semibold text-neutral-900 mb-3">Performance Optimizations</h4>
+              <div className="space-y-2 text-sm text-neutral-600">
+                <div className="flex items-start">
+                  <span className="text-success mr-2">✓</span>
+                  <span>React.cache() enabled for brand lookups</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-success mr-2">✓</span>
+                  <span>Database queries parallelized with Promise.all()</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-success mr-2">✓</span>
+                  <span>IP geolocation moved to background processing</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-success mr-2">✓</span>
+                  <span>Loading skeleton states for improved UX</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-success mr-2">✓</span>
+                  <span>Edge runtime for tracking API routes</span>
+                </div>
+                <div className="flex items-start">
+                  <span className="text-warning mr-2">⚠</span>
+                  <span>Database indexes pending (run migration in Supabase dashboard)</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
