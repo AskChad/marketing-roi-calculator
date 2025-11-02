@@ -23,7 +23,7 @@ interface VercelDNSConfig {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { brandId: string } }
+  { params }: { params: Promise<{ brandId: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -44,11 +44,14 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    // Await params
+    const { brandId } = await params
+
     // Get brand
     const { data: brand, error: brandError } = await supabase
       .from('brands')
       .select('domain')
-      .eq('id', params.brandId)
+      .eq('id', brandId)
       .single()
 
     if (brandError || !brand) {
