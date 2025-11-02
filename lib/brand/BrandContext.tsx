@@ -15,6 +15,7 @@ export interface Brand {
   color_accent: string
   color_success: string
   color_error: string
+  color_hover: string
 
   // Branding assets
   logo_url: string | null

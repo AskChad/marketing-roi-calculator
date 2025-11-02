@@ -57,6 +57,7 @@ const getBrandFromRequestUncached = async (): Promise<Brand> => {
         color_accent: '#F59E0B',
         color_success: '#10B981',
         color_error: '#EF4444',
+        color_hover: '#0052CC',
         logo_url: null,
         logo_dark_url: null,
         favicon_url: null,

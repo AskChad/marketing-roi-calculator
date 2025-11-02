@@ -25,6 +25,7 @@ interface Brand {
   color_accent: string
   color_success: string
   color_error: string
+  color_hover: string
   logo_url: string | null
   logo_dark_url: string | null
   favicon_url: string | null
@@ -100,6 +101,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
     color_accent: '#F59E0B',
     color_success: '#10B981',
     color_error: '#EF4444',
+    color_hover: '#0052CC',
     hero_title: 'Marketing ROI Calculator',
     hero_subtitle: 'Calculate your current marketing performance and model prospective scenarios',
     hero_cta_text: 'Get Started Free',
@@ -308,8 +310,8 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
                 <Palette className="mr-2 h-5 w-5" />
                 Brand Colors
               </h4>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {['color_primary', 'color_secondary', 'color_accent', 'color_success', 'color_error'].map((colorKey) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {['color_primary', 'color_secondary', 'color_accent', 'color_success', 'color_error', 'color_hover'].map((colorKey) => (
                   <div key={colorKey}>
                     <label className="block text-sm font-medium text-neutral-700 mb-1 capitalize">
                       {colorKey.replace('color_', '')}
