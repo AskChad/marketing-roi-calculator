@@ -471,7 +471,13 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
           const isSubdomainOnly = !isCustomDomain || brand.subdomain
 
           return (
-            <div key={brand.id} className="bg-white rounded-lg shadow p-6 border border-neutral-200 hover:shadow-md transition">
+            <div
+              key={brand.id}
+              className="bg-white rounded-lg shadow p-6 border border-neutral-200 hover:shadow-xl hover:border-brand-primary/30 transition-all duration-300 hover:scale-[1.02]"
+              style={{
+                '--hover-border-color': brand.color_primary + '4D', // 30% opacity
+              } as React.CSSProperties}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="font-semibold text-neutral-900 text-lg">{brand.name}</h3>

@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, Settings, Presentation } from 'lucide-react'
+import { useBrand } from '@/lib/brand/BrandContext'
+import Image from 'next/image'
 
 interface HeaderProps {
   showLogin?: boolean
@@ -13,6 +15,7 @@ interface HeaderProps {
 
 export default function Header({ showLogin = true, showDashboard = false, userName, isAdmin = false }: HeaderProps) {
   const router = useRouter()
+  const brand = useBrand()
 
   const handleLogout = async () => {
     try {
@@ -38,10 +41,23 @@ export default function Header({ showLogin = true, showDashboard = false, userNa
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition">
-            <TrendingUp className="h-8 w-8 text-brand-primary" />
-            <span className="text-xl font-bold text-neutral-900">
-              ROI Calculator
-            </span>
+            {brand.logo_url ? (
+              <Image
+                src={brand.logo_url}
+                alt={brand.name}
+                width={120}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
+            ) : (
+              <>
+                <TrendingUp className="h-8 w-8 text-brand-primary" />
+                <span className="text-xl font-bold text-neutral-900">
+                  {brand.name}
+                </span>
+              </>
+            )}
           </Link>
 
           {/* Navigation */}
