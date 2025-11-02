@@ -133,8 +133,9 @@ export default function DemoROICalculator({ userId, existingDemos, onDemoSaved }
         scenarioName: data.scenario_name,
       }
 
+      // Keep current prospective metrics
       setProspectiveMetrics(prospectiveData)
-      // Add to history (newest first)
+      // Also add to history for stacking display
       setProspectiveHistory(prev => [prospectiveData, ...prev])
 
       const calculatedData = {
