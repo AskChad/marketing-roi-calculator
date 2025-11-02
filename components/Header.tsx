@@ -103,7 +103,7 @@ export default function Header({ showLogin = true, showDashboard = false, userNa
             ) : showLogin ? (
               <Link
                 href="/login"
-                className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-hover transition font-medium"
               >
                 Login
               </Link>

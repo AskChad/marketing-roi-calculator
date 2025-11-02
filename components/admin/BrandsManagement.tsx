@@ -244,7 +244,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
         </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center"
+          className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-hover transition font-medium flex items-center"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Brand
@@ -465,7 +465,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition flex items-center disabled:opacity-50"
+                className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-hover transition flex items-center disabled:opacity-50"
               >
                 <Save className="mr-2 h-4 w-4" />
                 {isSaving ? 'Saving...' : 'Save Brand'}

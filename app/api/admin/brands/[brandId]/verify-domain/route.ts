@@ -4,7 +4,7 @@ import { addDomainToVercel, checkDomainVerification } from '@/lib/vercel-api'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ brandId: string }> }
 ) {
   const supabase = await createClient()
 
@@ -25,7 +25,7 @@ export async function POST(
   }
 
   try {
-    const { id: brandId } = await params
+    const { brandId } = await params
 
     // Get brand
     const { data: brand, error: brandError } = await supabase

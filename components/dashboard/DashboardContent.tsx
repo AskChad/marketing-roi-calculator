@@ -140,7 +140,7 @@ export default function DashboardContent({ scenarios, userId, userName, isAdmin 
           </p>
           <button
             onClick={() => setShowChat(true)}
-            className="w-full px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium"
+            className="w-full px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-hover transition font-medium"
           >
             Start AI Chat
           </button>

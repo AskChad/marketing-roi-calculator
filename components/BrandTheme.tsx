@@ -13,6 +13,7 @@ export default function BrandTheme() {
         --brand-accent: ${brand.color_accent};
         --brand-success: ${brand.color_success};
         --brand-error: ${brand.color_error};
+        --brand-hover: ${brand.color_hover};
       }
     `}</style>
   )

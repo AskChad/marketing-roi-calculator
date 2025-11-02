@@ -44,7 +44,7 @@ export default function DemoCalculatorContent({ userId, existingDemos: initialDe
             {savedDemos.length > 0 && (
               <Link
                 href="/roi-analytics"
-                className="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+                className="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-hover transition"
               >
                 This one takes to MY ROI analytics
               </Link>

@@ -14,6 +14,7 @@ module.exports = {
           primary: 'var(--brand-primary, #2563eb)',
           secondary: 'var(--brand-secondary, #7c3aed)',
           accent: 'var(--brand-accent, #0891b2)',
+          hover: 'var(--brand-hover, #1d4ed8)',
         },
         success: {
           light: '#86efac',

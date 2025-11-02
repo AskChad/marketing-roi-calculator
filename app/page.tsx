@@ -1,6 +1,7 @@
 import Header from '@/components/Header'
 import ContactForm from '@/components/ContactForm'
 import BenefitsSection from '@/components/BenefitsSection'
+import HeroSection from '@/components/HeroSection'
 import { Calculator, LineChart, Zap } from 'lucide-react'
 
 export default function Home() {
@@ -11,15 +12,7 @@ export default function Home() {
       <main className="min-h-screen bg-gradient-to-br from-neutral-50 to-white">
         {/* Hero Section */}
         <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 mb-6 leading-tight">
-              Calculate Your <span className="text-brand-primary">Marketing ROI</span>
-            </h1>
-            <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-              Optimize your advertising spend with AI-powered insights and platform-by-platform breakdown analysis.
-              Model unlimited scenarios and make data-driven decisions.
-            </p>
-          </div>
+          <HeroSection />
 
           {/* Feature Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">

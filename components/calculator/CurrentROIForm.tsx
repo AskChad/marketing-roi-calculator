@@ -160,7 +160,7 @@ export default function CurrentROIForm({ onSubmit, initialData }: CurrentROIForm
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center"
+        className="w-full px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-hover transition font-medium flex items-center justify-center"
       >
         <Calculator className="mr-2 h-5 w-5" />
         Calculate Current Metrics
