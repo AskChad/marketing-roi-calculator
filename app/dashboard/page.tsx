@@ -12,19 +12,22 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Fetch user's scenarios
-  const { data: scenarios } = await supabase
-    .from('roi_scenarios')
-    .select('*, calculator_sessions(*)')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  // Parallelize user data and scenarios queries for better performance
+  const [scenariosResult, userDataResult] = await Promise.all([
+    supabase
+      .from('roi_scenarios')
+      .select('*, calculator_sessions(*)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('users')
+      .select('id, email, first_name, last_name, is_admin')
+      .eq('id', user.id)
+      .single()
+  ])
 
-  // Fetch user data
-  const { data: userData } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const scenarios = scenariosResult.data
+  const userData = userDataResult.data
 
   return (
     <>

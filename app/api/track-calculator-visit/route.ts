@@ -8,9 +8,6 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    // Get brand from request
-    const brand = await getBrandFromRequest()
-
     // Get or create tracking ID
     const { trackingId } = getOrCreateTrackingId(request)
 
@@ -23,30 +20,23 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const pagePath = body.page || null
 
-    // Fetch geolocation data
-    const geoData = await getIPGeolocation(ipAddress)
-
-    // Check if user is logged in
-    const { data: { user } } = await supabase.auth.getUser()
+    // Parallelize brand and user lookups for better performance
+    const [brand, { data: { user } }] = await Promise.all([
+      getBrandFromRequest(),
+      supabase.auth.getUser()
+    ])
     const userId = user?.id || null
 
-    // Insert visit record with mapped geo fields
+    // Insert basic visit record first (fast response)
     const visitData: any = {
       tracking_id: trackingId,
       user_id: userId,
       ip_address: ipAddress,
       user_agent: userAgent,
       referrer: referrer,
-      country: geoData?.country_name || null,
-      region: geoData?.state_prov || null,
-      city: geoData?.city || null,
-      zipcode: geoData?.zipcode || null,
-      latitude: geoData?.latitude ? parseFloat(geoData.latitude) : null,
-      longitude: geoData?.longitude ? parseFloat(geoData.longitude) : null,
-      timezone: geoData?.time_zone?.name || null,
     }
 
-    // Add optional fields if they exist in the table
+    // Add optional fields
     if (brand?.id) {
       visitData.brand_id = brand.id
     }
@@ -54,14 +44,50 @@ export async function POST(request: NextRequest) {
       visitData.page_path = pagePath
     }
 
+    // Insert immediately without waiting for geolocation
     const { error: insertError } = await supabase
       .from('calculator_visits')
       .insert([visitData] as any)
 
     if (insertError) {
       console.error('Error tracking calculator visit:', insertError)
-      // Don't fail the request if tracking fails
     }
+
+    // Fetch geolocation in background (don't await)
+    // Update the record with geo data asynchronously
+    getIPGeolocation(ipAddress).then(async geoData => {
+      if (geoData && !insertError) {
+        try {
+          const supabaseForUpdate = await createClient()
+          const geoUpdate: any = {
+            country: geoData?.country_name || null,
+            region: geoData?.state_prov || null,
+            city: geoData?.city || null,
+            zipcode: geoData?.zipcode || null,
+            latitude: geoData?.latitude ? parseFloat(geoData.latitude) : null,
+            longitude: geoData?.longitude ? parseFloat(geoData.longitude) : null,
+            timezone: geoData?.time_zone?.name || null,
+          }
+
+          const { error: updateError } = await supabaseForUpdate
+            .from('calculator_visits')
+            // @ts-ignore - Supabase type inference issue with background update
+            .update(geoUpdate)
+            .eq('tracking_id', trackingId)
+            .eq('ip_address', ipAddress)
+            .order('visited_at', { ascending: false })
+            .limit(1)
+
+          if (updateError) {
+            console.error('Error updating geolocation data:', updateError)
+          }
+        } catch (updateErr) {
+          console.error('Error in geolocation update:', updateErr)
+        }
+      }
+    }).catch(err => {
+      console.error('Error fetching geolocation:', err)
+    })
 
     // Create response and set tracking cookie
     const response = NextResponse.json({ success: true })

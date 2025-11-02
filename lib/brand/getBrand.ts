@@ -1,12 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { Brand } from './BrandContext'
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 
 /**
  * Get brand configuration based on the current request domain
  * Checks Host header to determine which brand to load
+ * Cached per request to prevent redundant DB queries
  */
-export async function getBrandFromRequest(): Promise<Brand> {
+const getBrandFromRequestUncached = async (): Promise<Brand> => {
   const supabase = await createClient()
   const headersList = await headers()
   const host = headersList.get('host') || 'localhost:3000'
@@ -81,6 +84,9 @@ export async function getBrandFromRequest(): Promise<Brand> {
 
   return brand as Brand
 }
+
+// Wrap with React cache for request-level deduplication
+export const getBrandFromRequest = cache(getBrandFromRequestUncached)
 
 /**
  * Get brand by ID
