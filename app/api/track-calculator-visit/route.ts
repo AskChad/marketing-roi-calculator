@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
           if (geoData) {
             const geoFields = extractGeolocationFields(geoData)
             // Update the visit record with geo data
-            await supabase
-              .from('calculator_visits')
+            await (supabase
+              .from('calculator_visits') as any)
               .update({
                 country: geoData.country_name || null,
                 region: geoData.state_prov || null,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
                 latitude: geoData.latitude ? parseFloat(geoData.latitude) : null,
                 longitude: geoData.longitude ? parseFloat(geoData.longitude) : null,
                 timezone: geoData.time_zone?.name || null,
-              } as any)
+              })
               .eq('id', (insertedVisit as any).id)
             console.log('[Background] Geolocation data added for visit:', (insertedVisit as any).id)
           }

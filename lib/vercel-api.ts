@@ -14,11 +14,14 @@ if (!VERCEL_PROJECT_ID) {
   console.error('[VERCEL API] VERCEL_PROJECT_ID environment variable is not set')
 }
 
-const headers = VERCEL_TOKEN ? {
-  'Authorization': `Bearer ${VERCEL_TOKEN}`,
-  'Content-Type': 'application/json',
-} : {
-  'Content-Type': 'application/json',
+function getHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+  if (VERCEL_TOKEN) {
+    (headers as Record<string, string>)['Authorization'] = `Bearer ${VERCEL_TOKEN}`
+  }
+  return headers
 }
 
 export interface VercelDomain {
@@ -43,7 +46,7 @@ export async function addDomainToVercel(domain: string): Promise<{ success: bool
 
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: getHeaders(),
       body: JSON.stringify({ name: domain }),
     })
 
@@ -74,7 +77,7 @@ export async function getVercelDomain(domain: string): Promise<{ success: boolea
 
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: getHeaders(),
     })
 
     if (!response.ok) {
@@ -126,7 +129,7 @@ export async function removeDomainFromVercel(domain: string): Promise<{ success:
 
     const response = await fetch(url, {
       method: 'DELETE',
-      headers,
+      headers: getHeaders(),
     })
 
     if (!response.ok) {

@@ -146,9 +146,9 @@ export async function POST(request: NextRequest) {
         const geoData = await getIPGeolocation(ipAddress)
         if (geoData) {
           const geoFields = extractGeolocationFields(geoData)
-          await supabase
-            .from('lead_captures')
-            .update(geoFields as any)
+          await (supabase
+            .from('lead_captures') as any)
+            .update(geoFields)
             .eq('id', leadCaptureId)
           console.log('[Background] Geolocation data added for lead:', leadCaptureId)
         }
