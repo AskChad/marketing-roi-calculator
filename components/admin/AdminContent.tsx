@@ -27,6 +27,8 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
   const [isClearingCache, setIsClearingCache] = useState(false)
   const [cacheMessage, setCacheMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [newUserData, setNewUserData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     phone: '',
@@ -40,6 +42,8 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
   const [isEditingUser, setIsEditingUser] = useState(false)
   const [editUserData, setEditUserData] = useState<{
     id: string
+    firstName: string
+    lastName: string
     email: string
     phone: string
     is_admin: boolean
@@ -111,7 +115,7 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
       }
 
       setCreateUserSuccess(`User ${newUserData.email} created successfully!`)
-      setNewUserData({ email: '', password: '', phone: '', is_admin: false })
+      setNewUserData({ firstName: '', lastName: '', email: '', password: '', phone: '', is_admin: false })
 
       // Close modal after 2 seconds and refresh page
       setTimeout(() => {
@@ -139,6 +143,8 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          firstName: editUserData.firstName,
+          lastName: editUserData.lastName,
           email: editUserData.email,
           phone: editUserData.phone,
           is_admin: editUserData.is_admin,
@@ -169,6 +175,8 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
   const openEditModal = (user: any) => {
     setEditUserData({
       id: user.id,
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
       email: user.email,
       phone: user.phone || '',
       is_admin: user.is_admin,
@@ -647,6 +655,34 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             )}
 
             <div className="space-y-4">
+              {/* Name Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserData.firstName}
+                    onChange={(e) => setNewUserData(prev => ({ ...prev, firstName: e.target.value }))}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    placeholder="John"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserData.lastName}
+                    onChange={(e) => setNewUserData(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Email Address
@@ -768,6 +804,34 @@ export default function AdminContent({ users, scenarios, ghlSettings, calculator
             )}
 
             <div className="space-y-4">
+              {/* Name Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editUserData.firstName}
+                    onChange={(e) => setEditUserData({ ...editUserData, firstName: e.target.value })}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    placeholder="John"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editUserData.lastName}
+                    onChange={(e) => setEditUserData({ ...editUserData, lastName: e.target.value })}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">

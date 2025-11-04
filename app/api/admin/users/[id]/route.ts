@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const updateUserSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional().nullable(),
   is_admin: z.boolean().optional(),
@@ -42,10 +44,14 @@ export async function PATCH(
 
     // Prepare update data
     const updateData: {
+      first_name?: string
+      last_name?: string
       email?: string
       phone?: string | null
       is_admin?: boolean
     } = {}
+    if (validatedData.firstName !== undefined) updateData.first_name = validatedData.firstName
+    if (validatedData.lastName !== undefined) updateData.last_name = validatedData.lastName
     if (validatedData.email !== undefined) updateData.email = validatedData.email
     if (validatedData.phone !== undefined) updateData.phone = validatedData.phone
     if (validatedData.is_admin !== undefined) updateData.is_admin = validatedData.is_admin
@@ -65,6 +71,22 @@ export async function PATCH(
         { error: 'Failed to update user: ' + updateError.message },
         { status: 500 }
       )
+    }
+
+    // Also update the corresponding lead_capture entry if name was changed
+    if ((validatedData.firstName !== undefined || validatedData.lastName !== undefined) && (updatedUser as any)?.email) {
+      const leadUpdateData: {
+        first_name?: string
+        last_name?: string
+      } = {}
+      if (validatedData.firstName !== undefined) leadUpdateData.first_name = validatedData.firstName
+      if (validatedData.lastName !== undefined) leadUpdateData.last_name = validatedData.lastName
+
+      await supabase
+        .from('lead_captures')
+        // @ts-ignore
+        .update(leadUpdateData)
+        .eq('email', (updatedUser as any).email)
     }
 
     return NextResponse.json({
