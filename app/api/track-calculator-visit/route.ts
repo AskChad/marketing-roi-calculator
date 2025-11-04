@@ -4,8 +4,7 @@ import { getOrCreateTrackingId, setTrackingCookie } from '@/lib/tracking'
 import { getIPAddress, getUserAgent, getReferrer, getIPGeolocation, extractGeolocationFields } from '@/lib/get-ip-address'
 import { getBrandFromRequest } from '@/lib/brand/getBrand'
 
-// Use edge runtime for faster cold starts
-export const runtime = 'edge'
+// Use Node runtime (needed for crypto and fetch with geolocation)
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
@@ -24,14 +23,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const pagePath = body.page || null
 
-    // Parallelize brand and user lookups for better performance
+    // Parallelize brand and user lookups only (fast operations)
     const [brand, { data: { user } }] = await Promise.all([
       getBrandFromRequest(),
-      supabase.auth.getUser()
+      supabase.auth.getUser(),
     ])
     const userId = user?.id || null
 
-    // Insert basic visit record first (fast response)
+    // Build visit record without geo data (will be added in background)
     const visitData: any = {
       tracking_id: trackingId,
       user_id: userId,
@@ -48,54 +47,48 @@ export async function POST(request: NextRequest) {
       visitData.page_path = pagePath
     }
 
-    // Insert immediately without waiting for geolocation
-    const { error: insertError } = await supabase
+    // Insert visit immediately for fast response
+    const { data: insertedVisit, error: insertError } = await supabase
       .from('calculator_visits')
       .insert([visitData] as any)
+      .select('id')
+      .single()
 
     if (insertError) {
       console.error('Error tracking calculator visit:', insertError)
     }
 
-    // Fetch geolocation in background (don't await)
-    // Update the record with geo data asynchronously
-    getIPGeolocation(ipAddress).then(async geoData => {
-      if (geoData && !insertError) {
-        try {
-          const supabaseForUpdate = await createClient()
-          const geoUpdate: any = {
-            country: geoData?.country_name || null,
-            region: geoData?.state_prov || null,
-            city: geoData?.city || null,
-            zipcode: geoData?.zipcode || null,
-            latitude: geoData?.latitude ? parseFloat(geoData.latitude) : null,
-            longitude: geoData?.longitude ? parseFloat(geoData.longitude) : null,
-            timezone: geoData?.time_zone?.name || null,
-          }
-
-          const { error: updateError } = await supabaseForUpdate
-            .from('calculator_visits')
-            // @ts-ignore - Supabase type inference issue with background update
-            .update(geoUpdate)
-            .eq('tracking_id', trackingId)
-            .eq('ip_address', ipAddress)
-            .order('visited_at', { ascending: false })
-            .limit(1)
-
-          if (updateError) {
-            console.error('Error updating geolocation data:', updateError)
-          }
-        } catch (updateErr) {
-          console.error('Error in geolocation update:', updateErr)
-        }
-      }
-    }).catch(err => {
-      console.error('Error fetching geolocation:', err)
-    })
-
-    // Create response and set tracking cookie
+    // Create response and set tracking cookie immediately
     const response = NextResponse.json({ success: true })
     setTrackingCookie(response, trackingId)
+
+    // Update geolocation in background (non-blocking)
+    if (insertedVisit && (insertedVisit as any)?.id) {
+      void (async () => {
+        try {
+          const geoData = await getIPGeolocation(ipAddress)
+          if (geoData) {
+            const geoFields = extractGeolocationFields(geoData)
+            // Update the visit record with geo data
+            await supabase
+              .from('calculator_visits')
+              .update({
+                country: geoData.country_name || null,
+                region: geoData.state_prov || null,
+                city: geoData.city || null,
+                zipcode: geoData.zipcode || null,
+                latitude: geoData.latitude ? parseFloat(geoData.latitude) : null,
+                longitude: geoData.longitude ? parseFloat(geoData.longitude) : null,
+                timezone: geoData.time_zone?.name || null,
+              } as any)
+              .eq('id', (insertedVisit as any).id)
+            console.log('[Background] Geolocation data added for visit:', (insertedVisit as any).id)
+          }
+        } catch (geoError) {
+          console.error('[Background] Geolocation error (non-fatal):', geoError)
+        }
+      })()
+    }
 
     return response
   } catch (error) {

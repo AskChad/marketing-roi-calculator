@@ -23,10 +23,24 @@ export function getOrCreateTrackingId(request: NextRequest): { trackingId: strin
 
 /**
  * Set tracking cookie in response
+ * Sets two cookies:
+ * 1. visitor_tracking_id (httpOnly) - secure server-side tracking
+ * 2. has_tracking (non-httpOnly) - allows client-side access checks
  */
 export function setTrackingCookie(response: NextResponse, trackingId: string): void {
+  // Secure httpOnly cookie for server-side use
   response.cookies.set(TRACKING_COOKIE_NAME, trackingId, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: TRACKING_COOKIE_MAX_AGE,
+    path: '/',
+  })
+
+  // Non-httpOnly flag cookie for client-side access checks
+  // Note: Does not contain the actual tracking ID for security
+  response.cookies.set('has_tracking', 'true', {
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: TRACKING_COOKIE_MAX_AGE,

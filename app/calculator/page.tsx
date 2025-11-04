@@ -23,13 +23,28 @@ export default function CalculatorPage() {
   const [hasTrackingCookie, setHasTrackingCookie] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
 
-  // Check for tracking cookie (client-side only)
+  // Check for tracking cookie or leadCaptureId (client-side only)
   useEffect(() => {
     const checkTrackingCookie = () => {
-      // Check if visitor_tracking_id cookie exists
+      console.log('[Calculator] Checking tracking...')
+
+      // Check if has_tracking cookie exists (non-httpOnly, readable by JS)
       const cookies = document.cookie.split(';')
-      const hasTracking = cookies.some(cookie => cookie.trim().startsWith('visitor_tracking_id='))
-      setHasTrackingCookie(hasTracking)
+      const hasCookie = cookies.some(cookie => cookie.trim().startsWith('has_tracking='))
+      console.log('[Calculator] Tracking cookie check:', hasCookie)
+
+      // Also check if leadCaptureId exists in sessionStorage (set after form submission)
+      const hasLeadCapture = sessionStorage.getItem('leadCaptureId') !== null
+      console.log('[Calculator] SessionStorage leadCaptureId:', hasLeadCapture ? sessionStorage.getItem('leadCaptureId') : 'NOT FOUND')
+
+      // Also check if tracking_id exists in localStorage (also set after form submission)
+      const hasLocalTracking = localStorage.getItem('roi_tracking_id') !== null
+      console.log('[Calculator] LocalStorage roi_tracking_id:', hasLocalTracking ? localStorage.getItem('roi_tracking_id') : 'NOT FOUND')
+
+      // Consider user as tracked if any exist
+      const isTracked = hasCookie || hasLeadCapture || hasLocalTracking
+      console.log('[Calculator] Final tracking status:', isTracked)
+      setHasTrackingCookie(isTracked)
     }
 
     checkTrackingCookie()
@@ -68,8 +83,17 @@ export default function CalculatorPage() {
 
   // Redirect to landing page if not logged in and no tracking cookie
   useEffect(() => {
+    console.log('[Calculator] Access check:', {
+      isCheckingAccess,
+      isLoggedIn,
+      hasTrackingCookie
+    })
+
     if (!isCheckingAccess && !isLoggedIn && !hasTrackingCookie) {
+      console.log('[Calculator] ❌ Access DENIED - Redirecting to landing page')
       router.push('/')
+    } else if (!isCheckingAccess) {
+      console.log('[Calculator] ✅ Access GRANTED - Showing calculator')
     }
   }, [isCheckingAccess, isLoggedIn, hasTrackingCookie, router])
 
@@ -84,6 +108,9 @@ export default function CalculatorPage() {
             headers: {
               'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+              page: '/calculator'
+            })
           })
         } catch (error) {
           // Silent fail - don't disrupt user experience if tracking fails

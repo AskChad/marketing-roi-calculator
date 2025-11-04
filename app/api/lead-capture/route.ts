@@ -36,15 +36,18 @@ const leadCaptureSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('[Lead Capture] Received request with data:', JSON.stringify(body))
 
     // Validate input
     const validatedData = leadCaptureSchema.parse(body)
+    console.log('[Lead Capture] Validation passed')
 
     // Create Supabase client
     const supabase = await createClient()
 
     // Get brand from request
     const brand = await getBrandFromRequest()
+    console.log('[Lead Capture] Brand resolved:', brand.id, brand.name)
 
     // Check if this email already exists in lead_captures
     const { data: existingLead } = await (supabase
@@ -71,11 +74,7 @@ export async function POST(request: NextRequest) {
     const userAgent = getUserAgent(request)
     const referrer = getReferrer(request)
 
-    // Fetch geolocation data
-    const geoData = await getIPGeolocation(ipAddress)
-    const geoFields = extractGeolocationFields(geoData)
-
-    // Insert lead capture with IP tracking, geolocation, and tracking ID
+    // Insert lead capture without geolocation (will be added in background)
     const insertData: any = {
       first_name: validatedData.firstName,
       last_name: validatedData.lastName,
@@ -87,8 +86,9 @@ export async function POST(request: NextRequest) {
       tracking_id: trackingId,
       brand_id: brand.id,
       visit_count: 1,
-      ...geoFields,
     }
+
+    console.log('[Lead Capture] Attempting insert with brand_id:', brand.id, 'tracking_id:', trackingId)
 
     const { data, error } = await supabase
       .from('lead_captures')
@@ -97,67 +97,25 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Supabase insert error:', error)
+      console.error('[Lead Capture] Supabase insert error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        brand_id: brand.id,
+        tracking_id: trackingId
+      })
       return NextResponse.json(
-        { error: 'Failed to save lead information' },
+        { error: 'Failed to save lead information', details: error.message },
         { status: 500 }
       )
     }
 
+    console.log('[Lead Capture] Insert successful, ID:', (data as any)?.id)
+
     const leadCaptureId = (data as any)?.id
 
-    // Log the visit
-    try {
-      await (supabase
-        .from('visit_logs') as any)
-        .insert({
-          lead_capture_id: leadCaptureId,
-          ip_address: ipAddress,
-          user_agent: userAgent,
-          page_path: '/lead-capture',
-          referrer: referrer,
-        })
-    } catch (visitLogError) {
-      console.error('Visit log error (non-fatal):', visitLogError)
-    }
-
-    // Sync to GHL (admin's account) if connected
-    try {
-      // Check if GHL is connected
-      const { data: ghlSettings } = await (supabase
-        .from('admin_settings') as any)
-        .select('setting_key, setting_value')
-        .in('setting_key', ['ghl_connected', 'ghl_location_id'])
-
-      const settingsMap = ((ghlSettings as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
-        acc[setting.setting_key] = setting.setting_value
-        return acc
-      }, {} as Record<string, string>)
-
-      const isConnected = settingsMap.ghl_connected === 'true'
-      const locationId = settingsMap.ghl_location_id
-
-      if (isConnected && locationId) {
-        // Sync to GHL with ROI data if provided
-        await ghlClient.syncROIData(locationId, {
-          email: validatedData.email,
-          firstName: validatedData.firstName,
-          lastName: validatedData.lastName,
-          phone: validatedData.phone,
-          companyName: validatedData.companyName,
-          ...(validatedData.roiData || {}),
-        })
-
-        console.log('Successfully synced lead to GoHighLevel:', validatedData.email)
-      } else {
-        console.log('GHL not connected, skipping sync')
-      }
-    } catch (ghlError) {
-      // Log GHL sync error but don't fail the lead capture
-      console.error('GHL sync error (non-fatal):', ghlError)
-    }
-
-    // Create response and set tracking cookie
+    // Create response and set tracking cookie immediately for fast response
     const response = NextResponse.json({
       success: true,
       leadCaptureId: (data as any)?.id || null,
@@ -166,18 +124,92 @@ export async function POST(request: NextRequest) {
 
     setTrackingCookie(response, trackingId)
 
+    // Run background tasks without blocking the response (non-blocking)
+    void (async () => {
+      // Log the visit
+      try {
+        await (supabase
+          .from('visit_logs') as any)
+          .insert({
+            lead_capture_id: leadCaptureId,
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            page_path: '/lead-capture',
+            referrer: referrer,
+          })
+      } catch (visitLogError) {
+        console.error('[Background] Visit log error (non-fatal):', visitLogError)
+      }
+
+      // Update geolocation data in background
+      try {
+        const geoData = await getIPGeolocation(ipAddress)
+        if (geoData) {
+          const geoFields = extractGeolocationFields(geoData)
+          await supabase
+            .from('lead_captures')
+            .update(geoFields as any)
+            .eq('id', leadCaptureId)
+          console.log('[Background] Geolocation data added for lead:', leadCaptureId)
+        }
+      } catch (geoError) {
+        console.error('[Background] Geolocation error (non-fatal):', geoError)
+      }
+
+      // Sync to GHL (admin's account) if connected
+      try {
+        // Check if GHL is connected
+        const { data: ghlSettings } = await (supabase
+          .from('admin_settings') as any)
+          .select('setting_key, setting_value')
+          .in('setting_key', ['ghl_connected', 'ghl_location_id'])
+
+        const settingsMap = ((ghlSettings as any[]) || []).reduce((acc: Record<string, string>, setting: any) => {
+          acc[setting.setting_key] = setting.setting_value
+          return acc
+        }, {} as Record<string, string>)
+
+        const isConnected = settingsMap.ghl_connected === 'true'
+        const locationId = settingsMap.ghl_location_id
+
+        if (isConnected && locationId) {
+          // Sync to GHL with ROI data if provided
+          await ghlClient.syncROIData(locationId, {
+            email: validatedData.email,
+            firstName: validatedData.firstName,
+            lastName: validatedData.lastName,
+            phone: validatedData.phone,
+            companyName: validatedData.companyName,
+            ...(validatedData.roiData || {}),
+          })
+
+          console.log('[Background] Successfully synced lead to GoHighLevel:', validatedData.email)
+        } else {
+          console.log('[Background] GHL not connected, skipping sync')
+        }
+      } catch (ghlError) {
+        // Log GHL sync error but don't fail the lead capture
+        console.error('[Background] GHL sync error (non-fatal):', ghlError)
+      }
+    })()
+
     return response
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log('[Lead Capture] Validation error:', error.issues)
       return NextResponse.json(
         { error: 'Invalid form data', details: error.issues },
         { status: 400 }
       )
     }
 
-    console.error('Lead capture error:', error)
+    console.error('[Lead Capture] Unexpected error:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    })
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
