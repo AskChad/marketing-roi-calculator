@@ -18,10 +18,18 @@ interface UserData {
   phone: string | null
 }
 
+interface Brand {
+  id: string
+  name: string
+  domain: string
+}
+
 interface CalculatorVisit {
   id: string
   tracking_id: string | null
   user_id: string | null
+  brand_id: string | null
+  page_path: string | null
   ip_address: string | null
   user_agent: string | null
   referrer: string | null
@@ -35,9 +43,10 @@ interface CalculatorVisit {
   visited_at: string
   lead_captures: LeadCapture | null
   user_data: UserData | null
+  brand: Brand | null
 }
 
-type ColumnKey = 'name' | 'email' | 'phone' | 'company' | 'ip' | 'city' | 'state' | 'zip' | 'country' | 'date' | 'referrer'
+type ColumnKey = 'name' | 'email' | 'phone' | 'company' | 'brand' | 'page' | 'ip' | 'city' | 'state' | 'zip' | 'country' | 'date' | 'referrer'
 
 interface VisitsTableProps {
   visits: CalculatorVisit[]
@@ -53,9 +62,9 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(100)
 
-  // Default columns: name, city, state, zip, IP, date
+  // Default columns: name, brand, city, state, zip, date
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(
-    new Set(['name', 'city', 'state', 'zip', 'ip', 'date'])
+    new Set(['name', 'brand', 'city', 'state', 'zip', 'date'])
   )
 
   const columnDefinitions: Record<ColumnKey, { label: string, width: string }> = {
@@ -63,6 +72,8 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
     email: { label: 'Email', width: 'w-48' },
     phone: { label: 'Phone', width: 'w-32' },
     company: { label: 'Company', width: 'w-40' },
+    brand: { label: 'Brand', width: 'w-40' },
+    page: { label: 'Page', width: 'w-32' },
     ip: { label: 'IP Address', width: 'w-32' },
     city: { label: 'City', width: 'w-32' },
     state: { label: 'State', width: 'w-24' },
@@ -369,6 +380,12 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
                 {visibleColumns.has('company') && (
                   <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Company</th>
                 )}
+                {visibleColumns.has('brand') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Brand</th>
+                )}
+                {visibleColumns.has('page') && (
+                  <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">Page</th>
+                )}
                 {visibleColumns.has('ip') && (
                   <th className="text-left text-xs font-semibold text-neutral-600 px-4 py-3">IP Address</th>
                 )}
@@ -418,6 +435,12 @@ export default function VisitsTable({ visits }: VisitsTableProps) {
                     )}
                     {visibleColumns.has('company') && (
                       <td className="px-4 py-3 text-sm text-neutral-600">{getCompany(visit)}</td>
+                    )}
+                    {visibleColumns.has('brand') && (
+                      <td className="px-4 py-3 text-sm text-neutral-600">{visit.brand?.name || 'N/A'}</td>
+                    )}
+                    {visibleColumns.has('page') && (
+                      <td className="px-4 py-3 text-sm text-neutral-600">{visit.page_path || 'N/A'}</td>
                     )}
                     {visibleColumns.has('ip') && (
                       <td className="px-4 py-3 text-sm text-neutral-900 font-mono">{visit.ip_address || 'N/A'}</td>

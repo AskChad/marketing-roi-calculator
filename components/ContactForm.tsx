@@ -36,6 +36,8 @@ export default function ContactForm() {
     setIsSubmitting(true)
     setError(null)
 
+    console.log('[ContactForm] Submitting data:', data)
+
     try {
       // Submit to API endpoint
       const response = await fetch('/api/lead-capture', {
@@ -46,24 +48,36 @@ export default function ContactForm() {
         body: JSON.stringify(data),
       })
 
+      console.log('[ContactForm] Response status:', response.status)
+
       if (!response.ok) {
-        throw new Error('Failed to submit form')
+        // Try to get error details from response
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('[ContactForm] Error response:', errorData)
+        throw new Error(errorData.error || errorData.details || 'Failed to submit form')
       }
 
       const result = await response.json()
+      console.log('[ContactForm] Success response:', result)
 
       // Store lead capture ID in session storage for calculator page
       if (result.leadCaptureId) {
         sessionStorage.setItem('leadCaptureId', result.leadCaptureId)
+        console.log('[ContactForm] ✅ Stored leadCaptureId in sessionStorage:', result.leadCaptureId)
+      } else {
+        console.warn('[ContactForm] ⚠️ No leadCaptureId in response!')
       }
 
       // Sync tracking_id to localStorage if returned (for existing email reuse)
       if (result.trackingId) {
         localStorage.setItem('roi_tracking_id', result.trackingId)
-        console.log('Synced tracking_id from server:', result.trackingId)
+        console.log('[ContactForm] ✅ Stored trackingId in localStorage:', result.trackingId)
+      } else {
+        console.warn('[ContactForm] ⚠️ No trackingId in response!')
       }
 
       // Redirect to calculator
+      console.log('[ContactForm] 🚀 Redirecting to /calculator...')
       router.push('/calculator')
     } catch (err) {
       setError('Failed to submit form. Please try again.')

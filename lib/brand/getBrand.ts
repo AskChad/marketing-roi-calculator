@@ -46,8 +46,9 @@ const getBrandFromRequestUncached = async (): Promise<Brand> => {
 
     if (!defaultBrand) {
       // Return a fallback brand if nothing found in database
+      // Using the actual default brand UUID from the database
       return {
-        id: 'default',
+        id: '53896446-9d3e-4e90-844d-066b4e60df2e', // Default brand UUID
         name: 'Marketing ROI Calculator',
         domain: 'localhost:3000',
         subdomain: 'default',

@@ -11,6 +11,8 @@ interface CalculatorVisit {
   id: string
   tracking_id: string | null
   user_id: string | null
+  brand_id: string | null
+  page_path: string | null
   ip_address: string | null
   user_agent: string | null
   referrer: string | null
@@ -39,9 +41,16 @@ interface UserData {
   phone: string | null
 }
 
+interface Brand {
+  id: string
+  name: string
+  domain: string
+}
+
 interface VisitWithLead extends CalculatorVisit {
   lead_captures: LeadCapture | null
   user_data: UserData | null
+  brand: Brand | null
 }
 
 export default async function AdminPage() {
@@ -118,14 +127,16 @@ export default async function AdminPage() {
     .from('users')
     .select('id, email, phone')
 
-  // Manually join visits with leads and users
+  // Manually join visits with leads, users, and brands
   const calculatorVisits: VisitWithLead[] = (visitsData as CalculatorVisit[] || []).map(visit => {
     const lead = (leadsData as LeadCapture[] || []).find(l => l.tracking_id === visit.tracking_id)
     const user = (usersData as UserData[] || []).find(u => u.id === visit.user_id)
+    const brand = (allBrands as Brand[] || []).find(b => b.id === visit.brand_id)
     return {
       ...visit,
       lead_captures: lead || null,
-      user_data: user || null
+      user_data: user || null,
+      brand: brand ? { id: brand.id, name: brand.name, domain: brand.domain } : null
     }
   })
 
