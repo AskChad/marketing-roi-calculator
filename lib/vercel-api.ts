@@ -2,12 +2,22 @@
  * Vercel API client for domain management
  */
 
-const VERCEL_TOKEN = process.env.VERCEL_TOKEN || 'AJOA89XSplE7O1v1iFRc5IDJ'
-const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID || 'marketing-roi-calculator'
+const VERCEL_TOKEN = process.env.VERCEL_TOKEN
+const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID
 const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID // Optional
 
-const headers = {
+if (!VERCEL_TOKEN) {
+  console.error('[VERCEL API] VERCEL_TOKEN environment variable is not set')
+}
+
+if (!VERCEL_PROJECT_ID) {
+  console.error('[VERCEL API] VERCEL_PROJECT_ID environment variable is not set')
+}
+
+const headers = VERCEL_TOKEN ? {
   'Authorization': `Bearer ${VERCEL_TOKEN}`,
+  'Content-Type': 'application/json',
+} : {
   'Content-Type': 'application/json',
 }
 

@@ -79,7 +79,7 @@ export interface IPGeolocationData {
 
 /**
  * Fetch geolocation data from ipgeolocation.io API
- * API Key: 1205b2d5d21f46998615ea2330c60713
+ * Requires IP_GEOLOCATION_API_KEY environment variable
  */
 export async function getIPGeolocation(ipAddress: string): Promise<IPGeolocationData | null> {
   // Skip geolocation for unknown IPs or localhost
@@ -87,7 +87,12 @@ export async function getIPGeolocation(ipAddress: string): Promise<IPGeolocation
     return null
   }
 
-  const apiKey = '1205b2d5d21f46998615ea2330c60713'
+  const apiKey = process.env.IP_GEOLOCATION_API_KEY
+  if (!apiKey) {
+    console.error('[IP GEOLOCATION] IP_GEOLOCATION_API_KEY environment variable is not set')
+    return null
+  }
+
   const apiUrl = `https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${ipAddress}`
 
   try {

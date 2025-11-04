@@ -25,6 +25,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    // Security check: This endpoint should be disabled in production
+    // Migrations should be run via Supabase CLI instead
+    if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_MIGRATION_ENDPOINT) {
+      return NextResponse.json({
+        error: 'Migration endpoint disabled in production. Use Supabase CLI instead.'
+      }, { status: 403 })
+    }
+
+    // Validate database password is set
+    const dbPassword = process.env.SUPABASE_DB_PASSWORD
+    if (!dbPassword) {
+      return NextResponse.json({
+        error: 'SUPABASE_DB_PASSWORD environment variable not set'
+      }, { status: 500 })
+    }
+
     // Execute migration using pg client directly
     const { Client } = require('pg')
     const client = new Client({
@@ -32,7 +48,7 @@ export async function POST(request: NextRequest) {
       port: 6543,
       database: 'postgres',
       user: 'postgres.ohmioijbzvhoydyhdkdk',
-      password: process.env.SUPABASE_DB_PASSWORD || 'nLyrqefAev8R-pW-T3.y',
+      password: dbPassword,
       ssl: { rejectUnauthorized: false }
     })
 
