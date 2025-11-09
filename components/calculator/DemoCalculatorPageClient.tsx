@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import Header from '@/components/Header'
 import DemoCalculatorContent from '@/components/calculator/DemoCalculatorContent'
+import ShareEmbedButton from '@/components/calculator/ShareEmbedButton'
 
 interface DemoCalculatorPageClientProps {
   userId: string
@@ -47,20 +48,23 @@ export default function DemoCalculatorPageClient({
 
       <main className="min-h-screen bg-gradient-to-br from-neutral-50 to-white py-12">
         <div className="container mx-auto px-4">
-          <div className="mb-8 flex items-center space-x-4">
-            <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center">
-              <svg className="h-10 w-10 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-neutral-100 rounded-lg flex items-center justify-center">
+                <svg className="h-10 w-10 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-neutral-900 mb-2">
+                  Brand Name
+                </h1>
+                <p className="text-neutral-600">
+                  Create demo scenarios for prospective clients with company name tracking
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-bold text-neutral-900 mb-2">
-                Brand Name
-              </h1>
-              <p className="text-neutral-600">
-                Create demo scenarios for prospective clients with company name tracking
-              </p>
-            </div>
+            <ShareEmbedButton />
           </div>
 
           <DemoCalculatorContent
