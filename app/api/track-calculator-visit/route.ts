@@ -66,11 +66,18 @@ export async function POST(request: NextRequest) {
     if (insertedVisit && (insertedVisit as any)?.id) {
       void (async () => {
         try {
+          console.log('[Geolocation] Starting lookup for IP:', ipAddress, 'Visit ID:', (insertedVisit as any).id)
           const geoData = await getIPGeolocation(ipAddress)
           if (geoData) {
+            console.log('[Geolocation] Data received:', {
+              city: geoData.city,
+              state: geoData.state_prov,
+              zipcode: geoData.zipcode,
+              country: geoData.country_name
+            })
             const geoFields = extractGeolocationFields(geoData)
             // Update the visit record with geo data
-            await (supabase
+            const { error: updateError } = await (supabase
               .from('calculator_visits') as any)
               .update({
                 country: geoData.country_name || null,
@@ -82,10 +89,17 @@ export async function POST(request: NextRequest) {
                 timezone: geoData.time_zone?.name || null,
               })
               .eq('id', (insertedVisit as any).id)
-            console.log('[Background] Geolocation data added for visit:', (insertedVisit as any).id)
+
+            if (updateError) {
+              console.error('[Geolocation] Failed to update visit record:', updateError)
+            } else {
+              console.log('[Geolocation] Successfully updated visit:', (insertedVisit as any).id)
+            }
+          } else {
+            console.log('[Geolocation] No data returned for IP:', ipAddress)
           }
         } catch (geoError) {
-          console.error('[Background] Geolocation error (non-fatal):', geoError)
+          console.error('[Geolocation] Error (non-fatal):', geoError)
         }
       })()
     }

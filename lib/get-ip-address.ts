@@ -84,14 +84,18 @@ export interface IPGeolocationData {
 export async function getIPGeolocation(ipAddress: string): Promise<IPGeolocationData | null> {
   // Skip geolocation for unknown IPs or localhost
   if (!ipAddress || ipAddress === 'unknown' || ipAddress === '::1' || ipAddress.startsWith('127.')) {
+    console.log('[IP GEOLOCATION] Skipping lookup - IP is localhost or unknown:', ipAddress)
     return null
   }
 
   const apiKey = process.env.IP_GEOLOCATION_API_KEY
   if (!apiKey) {
-    console.error('[IP GEOLOCATION] IP_GEOLOCATION_API_KEY environment variable is not set')
+    console.error('[IP GEOLOCATION] ❌ IP_GEOLOCATION_API_KEY environment variable is not set!')
+    console.error('[IP GEOLOCATION] Location data will not be captured until this is configured in Vercel.')
     return null
   }
+
+  console.log('[IP GEOLOCATION] API key found, proceeding with lookup for IP:', ipAddress)
 
   const apiUrl = `https://api.ipgeolocation.io/ipgeo?apiKey=${apiKey}&ip=${ipAddress}`
 
