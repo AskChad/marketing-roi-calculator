@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import ContactForm from '@/components/ContactForm'
 import BenefitsSection from '@/components/BenefitsSection'
 import HeroSection from '@/components/HeroSection'
+import Footer from '@/components/Footer'
 import { Calculator, LineChart, Zap } from 'lucide-react'
 
 export default function Home() {
@@ -65,14 +66,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-neutral-900 text-neutral-400 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm">
-            &copy; {new Date().getFullYear()} Marketing ROI Calculator. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </>
   )
 }
