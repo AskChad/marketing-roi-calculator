@@ -42,6 +42,9 @@ export interface Brand {
   privacy_policy_url: string | null
   terms_of_service_url: string | null
 
+  // A2P 10DLC Compliance
+  a2p_compliance_enabled: boolean
+
   // Domain verification
   domain_verified?: boolean
   domain_verification_checked_at?: string
