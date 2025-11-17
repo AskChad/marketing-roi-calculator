@@ -316,11 +316,20 @@ export class GHLClient {
         salesIncrease: 'roi_sales_increase',
         revenueIncrease: 'roi_revenue_increase',
         cpaImprovement: 'roi_cpa_improvement',
-        // SMS Consent fields (A2P 10DLC compliance)
+        // SMS Consent fields (A2P 10DLC compliance - legacy)
         smsOptIn: 'sms_opt_in',
         smsConsentText: 'sms_consent_text',
         smsOptedInAt: 'sms_opted_in_at',
         smsConsentIp: 'sms_consent_ip',
+        // SMS Consent fields (separate Marketing and Transactional)
+        smsOptInMarketing: 'sms_opt_in_marketing',
+        smsMarketingConsentText: 'sms_marketing_consent_text',
+        smsMarketingOptedInAt: 'sms_marketing_opted_in_at',
+        smsMarketingConsentIp: 'sms_marketing_consent_ip',
+        smsOptInTransactional: 'sms_opt_in_transactional',
+        smsTransactionalConsentText: 'sms_transactional_consent_text',
+        smsTransactionalOptedInAt: 'sms_transactional_opted_in_at',
+        smsTransactionalConsentIp: 'sms_transactional_consent_ip',
       }
     }
 
@@ -377,11 +386,20 @@ export class GHLClient {
       '{{revenueIncrease}}': leadData.revenueIncrease ? `$${leadData.revenueIncrease.toLocaleString()}` : '',
       '{{cpaImprovement}}': leadData.cpaImprovement ? `$${leadData.cpaImprovement}` : '',
       '{{date}}': new Date().toLocaleString(),
-      // SMS Consent placeholders (A2P 10DLC compliance)
+      // SMS Consent placeholders (A2P 10DLC compliance - legacy)
       '{{smsOptIn}}': leadData.smsOptIn ? 'Yes' : 'No',
       '{{smsConsentText}}': leadData.smsConsentText || '',
       '{{smsOptedInAt}}': leadData.smsOptedInAt || '',
       '{{smsConsentIp}}': leadData.smsConsentIp || '',
+      // SMS Consent placeholders (separate Marketing and Transactional)
+      '{{smsOptInMarketing}}': leadData.smsOptInMarketing ? 'Yes' : 'No',
+      '{{smsMarketingConsentText}}': leadData.smsMarketingConsentText || '',
+      '{{smsMarketingOptedInAt}}': leadData.smsMarketingOptedInAt || '',
+      '{{smsMarketingConsentIp}}': leadData.smsMarketingConsentIp || '',
+      '{{smsOptInTransactional}}': leadData.smsOptInTransactional ? 'Yes' : 'No',
+      '{{smsTransactionalConsentText}}': leadData.smsTransactionalConsentText || '',
+      '{{smsTransactionalOptedInAt}}': leadData.smsTransactionalOptedInAt || '',
+      '{{smsTransactionalConsentIp}}': leadData.smsTransactionalConsentIp || '',
     }
 
     for (const [placeholder, value] of Object.entries(replacements)) {
@@ -419,6 +437,15 @@ export class GHLClient {
     smsConsentText?: string
     smsOptedInAt?: string
     smsConsentIp?: string
+    // Separate Marketing and Transactional consent
+    smsOptInMarketing?: boolean
+    smsMarketingConsentText?: string
+    smsMarketingOptedInAt?: string
+    smsMarketingConsentIp?: string
+    smsOptInTransactional?: boolean
+    smsTransactionalConsentText?: string
+    smsTransactionalOptedInAt?: string
+    smsTransactionalConsentIp?: string
   }): Promise<any> {
     // Get field mappings and notes config
     const fieldMappings = await this.getFieldMappings()
@@ -445,11 +472,20 @@ export class GHLClient {
       salesIncrease: leadData.salesIncrease,
       revenueIncrease: leadData.revenueIncrease,
       cpaImprovement: leadData.cpaImprovement,
-      // SMS Consent fields
+      // SMS Consent fields (legacy)
       smsOptIn: leadData.smsOptIn,
       smsConsentText: leadData.smsConsentText,
       smsOptedInAt: leadData.smsOptedInAt,
       smsConsentIp: leadData.smsConsentIp,
+      // SMS Consent fields (separate Marketing and Transactional)
+      smsOptInMarketing: leadData.smsOptInMarketing,
+      smsMarketingConsentText: leadData.smsMarketingConsentText,
+      smsMarketingOptedInAt: leadData.smsMarketingOptedInAt,
+      smsMarketingConsentIp: leadData.smsMarketingConsentIp,
+      smsOptInTransactional: leadData.smsOptInTransactional,
+      smsTransactionalConsentText: leadData.smsTransactionalConsentText,
+      smsTransactionalOptedInAt: leadData.smsTransactionalOptedInAt,
+      smsTransactionalConsentIp: leadData.smsTransactionalConsentIp,
     }
 
     // Map data to custom fields

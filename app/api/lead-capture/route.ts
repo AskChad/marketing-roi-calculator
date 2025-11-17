@@ -14,7 +14,8 @@ const leadCaptureSchema = z.object({
   phone: z.string().optional(),
   companyName: z.string().min(1).max(255),
   websiteUrl: z.string().url().optional().or(z.literal('')),
-  smsOptIn: z.boolean().optional(),
+  smsOptInMarketing: z.boolean().optional(),
+  smsOptInTransactional: z.boolean().optional(),
   // Optional ROI data for GHL sync
   roiData: z.object({
     currentLeads: z.number().optional(),
@@ -77,16 +78,35 @@ export async function POST(request: NextRequest) {
 
     // Prepare SMS consent data if user opted in (A2P 10DLC compliance)
     const smsConsentData: any = {}
-    if (validatedData.smsOptIn === true) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.roicalculator.app'
+    const timestamp = new Date().toISOString()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.roicalculator.app'
+
+    // Marketing SMS consent
+    if (validatedData.smsOptInMarketing === true) {
+      smsConsentData.sms_opt_in_marketing = true
+      smsConsentData.sms_marketing_opted_in_at = timestamp
+      smsConsentData.sms_marketing_consent_ip = ipAddress
+      smsConsentData.sms_marketing_consent_text = 'I agree to receive automated marketing text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+      console.log('[Lead Capture] User opted in to MARKETING SMS')
+    }
+
+    // Transactional SMS consent
+    if (validatedData.smsOptInTransactional === true) {
+      smsConsentData.sms_opt_in_transactional = true
+      smsConsentData.sms_transactional_opted_in_at = timestamp
+      smsConsentData.sms_transactional_consent_ip = ipAddress
+      smsConsentData.sms_transactional_consent_text = 'I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+      console.log('[Lead Capture] User opted in to TRANSACTIONAL SMS')
+    }
+
+    // Store legacy sms_opt_in for backward compatibility (true if either is checked)
+    if (validatedData.smsOptInMarketing || validatedData.smsOptInTransactional) {
       smsConsentData.sms_opt_in = true
-      smsConsentData.sms_opted_in_at = new Date().toISOString()
+      smsConsentData.sms_opted_in_at = timestamp
       smsConsentData.sms_consent_ip = ipAddress
       smsConsentData.sms_consent_user_agent = userAgent
-      smsConsentData.sms_consent_text = 'I agree to receive text messages from ROI Calculator. Message frequency varies. Message and data rates may apply. Text STOP to cancel, HELP for help. Terms & Privacy Policy apply.'
       smsConsentData.sms_terms_url = `${appUrl}/sms-terms`
       smsConsentData.sms_privacy_url = `${appUrl}/privacy`
-      console.log('[Lead Capture] User opted in to SMS, storing consent data')
     }
 
     // Insert lead capture without geolocation (will be added in background)
@@ -191,12 +211,21 @@ export async function POST(request: NextRequest) {
         if (isConnected && locationId) {
           // Prepare SMS consent data for GHL sync (A2P 10DLC compliance)
           const smsDataForGHL: any = {}
-          if (validatedData.smsOptIn === true) {
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.roicalculator.app'
-            smsDataForGHL.smsOptIn = true
-            smsDataForGHL.smsConsentText = 'I agree to receive text messages from ROI Calculator. Message frequency varies. Message and data rates may apply. Text STOP to cancel, HELP for help. Terms & Privacy Policy apply.'
-            smsDataForGHL.smsOptedInAt = new Date().toISOString()
-            smsDataForGHL.smsConsentIp = ipAddress
+
+          // Marketing SMS
+          if (validatedData.smsOptInMarketing === true) {
+            smsDataForGHL.smsOptInMarketing = true
+            smsDataForGHL.smsMarketingConsentText = 'I agree to receive automated marketing text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+            smsDataForGHL.smsMarketingOptedInAt = timestamp
+            smsDataForGHL.smsMarketingConsentIp = ipAddress
+          }
+
+          // Transactional SMS
+          if (validatedData.smsOptInTransactional === true) {
+            smsDataForGHL.smsOptInTransactional = true
+            smsDataForGHL.smsTransactionalConsentText = 'I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+            smsDataForGHL.smsTransactionalOptedInAt = timestamp
+            smsDataForGHL.smsTransactionalConsentIp = ipAddress
           }
 
           // Sync to GHL with ROI data and SMS consent data
@@ -210,7 +239,10 @@ export async function POST(request: NextRequest) {
             ...smsDataForGHL, // Include SMS consent data
           })
 
-          console.log('[Background] Successfully synced lead to GoHighLevel:', validatedData.email, validatedData.smsOptIn ? '(with SMS consent)' : '')
+          const smsStatus = []
+          if (validatedData.smsOptInMarketing) smsStatus.push('Marketing SMS')
+          if (validatedData.smsOptInTransactional) smsStatus.push('Transactional SMS')
+          console.log('[Background] Successfully synced lead to GoHighLevel:', validatedData.email, smsStatus.length > 0 ? `(with ${smsStatus.join(' + ')})` : '')
         } else {
           console.log('[Background] GHL not connected, skipping sync')
         }

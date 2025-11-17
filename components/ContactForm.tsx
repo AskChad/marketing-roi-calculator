@@ -15,7 +15,8 @@ const contactSchema = z.object({
   phone: z.string().optional(),
   companyName: z.string().min(1, 'Company name is required').max(255),
   websiteUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  smsOptIn: z.boolean().optional(),
+  smsOptInMarketing: z.boolean().optional(),
+  smsOptInTransactional: z.boolean().optional(),
 })
 
 type ContactFormData = z.infer<typeof contactSchema>
@@ -199,17 +200,22 @@ export default function ContactForm() {
         )}
       </div>
 
-      {/* SMS Opt-In (A2P 10DLC Compliant) */}
-      <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+      {/* SMS Opt-In (A2P 10DLC Compliant) - Two Separate Checkboxes */}
+      <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50 space-y-4">
+        <div className="text-sm font-medium text-neutral-900 mb-3">
+          SMS Messaging Preferences (Optional)
+        </div>
+
+        {/* Marketing SMS */}
         <label className="flex items-start cursor-pointer">
           <input
             type="checkbox"
-            {...register('smsOptIn')}
+            {...register('smsOptInMarketing')}
             className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
           />
           <span className="ml-3 text-sm text-neutral-700">
-            I agree to receive text messages from ROI Calculator. Message frequency varies.
-            Message and data rates may apply. Text STOP to cancel, HELP for help.{' '}
+            I agree to receive automated marketing text messages from AskChad at the phone number provided.
+            Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
             <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
               Terms
             </Link>
@@ -220,7 +226,29 @@ export default function ContactForm() {
             {' '}apply.
           </span>
         </label>
-        <p className="mt-2 ml-7 text-xs text-neutral-500">
+
+        {/* Transactional SMS */}
+        <label className="flex items-start cursor-pointer">
+          <input
+            type="checkbox"
+            {...register('smsOptInTransactional')}
+            className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+          />
+          <span className="ml-3 text-sm text-neutral-700">
+            I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided.
+            Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
+            <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Terms
+            </Link>
+            {' '}&{' '}
+            <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Privacy Policy
+            </Link>
+            {' '}apply.
+          </span>
+        </label>
+
+        <p className="text-xs text-neutral-500 pt-2 border-t border-neutral-200">
           Optional. Consent is not a condition of purchase or use of our calculator.
         </p>
       </div>

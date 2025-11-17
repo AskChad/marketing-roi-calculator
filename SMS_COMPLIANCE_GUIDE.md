@@ -2,9 +2,10 @@
 
 > Complete guide for implementing TCPA/CTIA compliant NEW SMS opt-in forms with required Privacy Policy and Terms of Service pages
 
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Status**: Active
 **Created**: 2025-11-16
+**Updated**: 2025-11-17
 **Compliance Standards**: A2P 10DLC / CTIA / TCPA
 
 ---
@@ -280,21 +281,66 @@ Before launching any NEW SMS opt-in contact form, complete the following:
 
 Every contact form with NEW SMS opt-in must include:
 
-1. **Clear opt-in checkbox** (not pre-checked) - Users must actively check the box to consent
-2. **Link to Privacy Policy** near the opt-in
-3. **Link to Terms of Service** near the opt-in
-4. **Disclosure text** about message frequency and rates
+1. **TWO SEPARATE opt-in checkboxes** (not pre-checked) - One for Marketing, one for Transactional
+2. **Link to Privacy Policy** near each opt-in
+3. **Link to Terms of Service** near each opt-in
+4. **Specific disclosure text** for each type (see below)
 
-### Example Form Disclosure Text
+### Required Checkbox Text (EXACT WORDING)
 
+#### Marketing SMS Checkbox:
 ```html
 <label>
-  <input type="checkbox" name="sms_opt_in" required />
-  I agree to receive text messages from {{company_name}}. Message frequency {{message_frequency}}.
-  Message and data rates may apply. Text STOP to cancel, HELP for help.
+  <input type="checkbox" name="sms_opt_in_marketing" />
+  I agree to receive automated marketing text messages from {{company_name}} at the phone number provided.
+  Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.
   <a href="{{terms_url}}" target="_blank">Terms</a> &
   <a href="{{privacy_url}}" target="_blank">Privacy Policy</a> apply.
 </label>
+```
+
+#### Transactional SMS Checkbox:
+```html
+<label>
+  <input type="checkbox" name="sms_opt_in_transactional" />
+  I agree to receive automated transactional and service-based text messages from {{company_name}} at the phone number provided.
+  Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.
+  <a href="{{terms_url}}" target="_blank">Terms</a> &
+  <a href="{{privacy_url}}" target="_blank">Privacy Policy</a> apply.
+</label>
+```
+
+### Full Example Form Implementation
+
+```html
+<form>
+  <!-- Other form fields (name, email, phone, etc.) -->
+
+  <!-- SMS Messaging Preferences -->
+  <fieldset>
+    <legend>SMS Messaging Preferences (Optional)</legend>
+
+    <!-- Marketing SMS -->
+    <label>
+      <input type="checkbox" name="sms_opt_in_marketing" />
+      I agree to receive automated marketing text messages from {{company_name}} at the phone number provided.
+      Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.
+      <a href="{{terms_url}}" target="_blank">Terms</a> &
+      <a href="{{privacy_url}}" target="_blank">Privacy Policy</a> apply.
+    </label>
+
+    <!-- Transactional SMS -->
+    <label>
+      <input type="checkbox" name="sms_opt_in_transactional" />
+      I agree to receive automated transactional and service-based text messages from {{company_name}} at the phone number provided.
+      Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.
+      <a href="{{terms_url}}" target="_blank">Terms</a> &
+      <a href="{{privacy_url}}" target="_blank">Privacy Policy</a> apply.
+    </label>
+
+    <p>Optional. Consent is not a condition of purchase.</p>
+  </fieldset>
+</form>
 ```
 
 ### Database Fields
@@ -305,17 +351,29 @@ Store the following for compliance (ONLY for NEW opt-ins):
 interface SmsOptIn {
   user_id: string;
   phone_number: string;
-  opted_in_at: Date; // Timestamp of NEW opt-in
+
+  // Marketing SMS Consent
+  sms_opt_in_marketing: boolean;
+  sms_marketing_opted_in_at?: Date;
+  sms_marketing_consent_ip?: string;
+  sms_marketing_consent_text?: string; // Exact text: "I agree to receive automated marketing text messages from {{company_name}}..."
+
+  // Transactional SMS Consent
+  sms_opt_in_transactional: boolean;
+  sms_transactional_opted_in_at?: Date;
+  sms_transactional_consent_ip?: string;
+  sms_transactional_consent_text?: string; // Exact text: "I agree to receive automated transactional and service-based text messages from {{company_name}}..."
+
+  // Common fields
   opt_in_source: string; // e.g., "contact-form", "landing-page"
-  ip_address: string; // IP at time of NEW consent
-  user_agent: string; // Browser/device at time of NEW consent
-  consent_text: string; // The exact text shown at time of NEW opt-in
+  user_agent?: string; // Browser/device at time of NEW consent
   terms_url: string; // URL to terms at time of NEW opt-in
   privacy_url: string; // URL to privacy policy at time of NEW opt-in
-  is_new_consent: boolean; // Always true for NEW opt-ins
   previous_opt_out_date?: Date; // If user previously opted out and is re-subscribing
 }
 ```
+
+**Important**: Store BOTH consent types separately. A user may consent to one type but not the other.
 
 ---
 
