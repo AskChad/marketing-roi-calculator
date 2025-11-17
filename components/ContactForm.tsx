@@ -12,7 +12,7 @@ import { useBrand } from '@/lib/brand/BrandContext'
 // Create schema factory based on A2P compliance setting
 const createContactSchema = (a2pEnabled: boolean) => {
   if (a2pEnabled) {
-    // A2P Mode: Email and Phone optional, SMS checkboxes shown
+    // A2P Mode: Email and Phone optional, SMS checkboxes optional (unchecked by default)
     return z.object({
       firstName: z.string().min(1, 'First name is required').max(100),
       lastName: z.string().min(1, 'Last name is required').max(100),
@@ -24,7 +24,7 @@ const createContactSchema = (a2pEnabled: boolean) => {
       smsOptInTransactional: z.boolean().optional(),
     })
   } else {
-    // Non-A2P Mode: Email and Phone required, no SMS checkboxes
+    // Non-A2P Mode: Email, Phone, and BOTH SMS checkboxes required (pre-checked by default)
     return z.object({
       firstName: z.string().min(1, 'First name is required').max(100),
       lastName: z.string().min(1, 'Last name is required').max(100),
@@ -32,6 +32,12 @@ const createContactSchema = (a2pEnabled: boolean) => {
       phone: z.string().min(1, 'Phone number is required'),
       companyName: z.string().min(1, 'Company name is required').max(255),
       websiteUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+      smsOptInMarketing: z.boolean().refine((val) => val === true, {
+        message: 'You must consent to receive marketing messages',
+      }),
+      smsOptInTransactional: z.boolean().refine((val) => val === true, {
+        message: 'You must consent to receive transactional messages',
+      }),
     })
   }
 }
@@ -56,6 +62,11 @@ export default function ContactForm() {
     formState: { errors },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
+    defaultValues: {
+      // When A2P is OFF, pre-check the SMS consent boxes
+      smsOptInMarketing: !brand.a2p_compliance_enabled,
+      smsOptInTransactional: !brand.a2p_compliance_enabled,
+    },
   })
 
   const onSubmit = async (data: ContactFormData) => {
@@ -234,60 +245,73 @@ export default function ContactForm() {
         )}
       </div>
 
-      {/* SMS Opt-In (A2P 10DLC Compliant) - Only show when A2P compliance is enabled */}
-      {brand.a2p_compliance_enabled && (
-        <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50 space-y-4">
-          <div className="text-sm font-medium text-neutral-900 mb-3">
-            SMS Messaging Preferences (Optional)
-          </div>
-
-          {/* Marketing SMS */}
-          <label className="flex items-start cursor-pointer">
-            <input
-              type="checkbox"
-              {...register('smsOptInMarketing')}
-              className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
-            />
-            <span className="ml-3 text-sm text-neutral-700">
-              I agree to receive automated marketing text messages from AskChad at the phone number provided.
-              Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
-              <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
-                Terms
-              </Link>
-              {' '}&{' '}
-              <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
-                Privacy Policy
-              </Link>
-              {' '}apply.
-            </span>
-          </label>
-
-          {/* Transactional SMS */}
-          <label className="flex items-start cursor-pointer">
-            <input
-              type="checkbox"
-              {...register('smsOptInTransactional')}
-              className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
-            />
-            <span className="ml-3 text-sm text-neutral-700">
-              I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided.
-              Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
-              <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
-                Terms
-              </Link>
-              {' '}&{' '}
-              <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
-                Privacy Policy
-              </Link>
-              {' '}apply.
-            </span>
-          </label>
-
-          <p className="text-xs text-neutral-500 pt-2 border-t border-neutral-200">
-            Optional. Consent is not a condition of purchase or use of our calculator.
-          </p>
+      {/* SMS Opt-In - Always shown, behavior changes based on A2P compliance setting */}
+      <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50 space-y-4">
+        <div className="text-sm font-medium text-neutral-900 mb-3">
+          SMS Messaging Preferences{' '}
+          {brand.a2p_compliance_enabled ? (
+            <span className="text-neutral-400 font-normal">(Optional)</span>
+          ) : (
+            <span className="text-danger">*</span>
+          )}
         </div>
-      )}
+
+        {/* Marketing SMS */}
+        <label className="flex items-start cursor-pointer">
+          <input
+            type="checkbox"
+            {...register('smsOptInMarketing')}
+            className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+          />
+          <span className="ml-3 text-sm text-neutral-700">
+            I agree to receive automated marketing text messages from AskChad at the phone number provided.
+            Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
+            <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Terms
+            </Link>
+            {' '}&{' '}
+            <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Privacy Policy
+            </Link>
+            {' '}apply.
+          </span>
+        </label>
+        {errors.smsOptInMarketing && (
+          <p className="mt-1 text-sm text-danger">{errors.smsOptInMarketing.message}</p>
+        )}
+
+        {/* Transactional SMS */}
+        <label className="flex items-start cursor-pointer">
+          <input
+            type="checkbox"
+            {...register('smsOptInTransactional')}
+            className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+          />
+          <span className="ml-3 text-sm text-neutral-700">
+            I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided.
+            Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
+            <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Terms
+            </Link>
+            {' '}&{' '}
+            <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Privacy Policy
+            </Link>
+            {' '}apply.
+          </span>
+        </label>
+        {errors.smsOptInTransactional && (
+          <p className="mt-1 text-sm text-danger">{errors.smsOptInTransactional.message}</p>
+        )}
+
+        <p className="text-xs text-neutral-500 pt-2 border-t border-neutral-200">
+          {brand.a2p_compliance_enabled ? (
+            <>Optional. Consent is not a condition of purchase or use of our calculator.</>
+          ) : (
+            <>Required. You must consent to receive SMS messages to use this service.</>
+          )}
+        </p>
+      </div>
 
       {/* Submit Button */}
       <button

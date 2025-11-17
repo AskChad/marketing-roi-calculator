@@ -330,8 +330,8 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
                     Enable A2P 10DLC Compliance Mode
                   </label>
                   <p className="text-xs text-neutral-600 mt-1">
-                    <strong>When ON:</strong> Shows SMS opt-in checkboxes (Marketing & Transactional). Phone and Email are optional fields.<br />
-                    <strong>When OFF:</strong> No SMS checkboxes shown. Phone and Email are required fields.
+                    <strong>When ON:</strong> SMS checkboxes unchecked & optional. Phone and Email optional.<br />
+                    <strong>When OFF:</strong> SMS checkboxes pre-checked & required. Phone and Email required.
                   </p>
                 </div>
               </div>
