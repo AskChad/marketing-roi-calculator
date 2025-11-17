@@ -1,30 +1,54 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { useBrand } from '@/lib/brand/BrandContext'
 
-const contactSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100),
-  lastName: z.string().min(1, 'Last name is required').max(100),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().optional(),
-  companyName: z.string().min(1, 'Company name is required').max(255),
-  websiteUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  smsOptInMarketing: z.boolean().optional(),
-  smsOptInTransactional: z.boolean().optional(),
-})
+// Create schema factory based on A2P compliance setting
+const createContactSchema = (a2pEnabled: boolean) => {
+  if (a2pEnabled) {
+    // A2P Mode: Email and Phone optional, SMS checkboxes shown
+    return z.object({
+      firstName: z.string().min(1, 'First name is required').max(100),
+      lastName: z.string().min(1, 'Last name is required').max(100),
+      email: z.string().email('Invalid email address').optional().or(z.literal('')),
+      phone: z.string().optional(),
+      companyName: z.string().min(1, 'Company name is required').max(255),
+      websiteUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+      smsOptInMarketing: z.boolean().optional(),
+      smsOptInTransactional: z.boolean().optional(),
+    })
+  } else {
+    // Non-A2P Mode: Email and Phone required, no SMS checkboxes
+    return z.object({
+      firstName: z.string().min(1, 'First name is required').max(100),
+      lastName: z.string().min(1, 'Last name is required').max(100),
+      email: z.string().email('Invalid email address'),
+      phone: z.string().min(1, 'Phone number is required'),
+      companyName: z.string().min(1, 'Company name is required').max(255),
+      websiteUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+    })
+  }
+}
 
-type ContactFormData = z.infer<typeof contactSchema>
+type ContactFormData = z.infer<ReturnType<typeof createContactSchema>>
 
 export default function ContactForm() {
   const router = useRouter()
+  const brand = useBrand()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Create schema based on brand's A2P compliance setting
+  const contactSchema = useMemo(
+    () => createContactSchema(brand.a2p_compliance_enabled ?? true),
+    [brand.a2p_compliance_enabled]
+  )
 
   const {
     register,
@@ -135,7 +159,12 @@ export default function ContactForm() {
       {/* Email Field */}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
-          Email <span className="text-danger">*</span>
+          Email{' '}
+          {brand.a2p_compliance_enabled ? (
+            <span className="text-neutral-400">(Optional)</span>
+          ) : (
+            <span className="text-danger">*</span>
+          )}
         </label>
         <input
           type="email"
@@ -149,10 +178,15 @@ export default function ContactForm() {
         )}
       </div>
 
-      {/* Phone Field (Optional) */}
+      {/* Phone Field */}
       <div>
         <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 mb-2">
-          Phone <span className="text-neutral-400">(Optional)</span>
+          Phone{' '}
+          {brand.a2p_compliance_enabled ? (
+            <span className="text-neutral-400">(Optional)</span>
+          ) : (
+            <span className="text-danger">*</span>
+          )}
         </label>
         <input
           type="tel"
@@ -200,58 +234,60 @@ export default function ContactForm() {
         )}
       </div>
 
-      {/* SMS Opt-In (A2P 10DLC Compliant) - Two Separate Checkboxes */}
-      <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50 space-y-4">
-        <div className="text-sm font-medium text-neutral-900 mb-3">
-          SMS Messaging Preferences (Optional)
+      {/* SMS Opt-In (A2P 10DLC Compliant) - Only show when A2P compliance is enabled */}
+      {brand.a2p_compliance_enabled && (
+        <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50 space-y-4">
+          <div className="text-sm font-medium text-neutral-900 mb-3">
+            SMS Messaging Preferences (Optional)
+          </div>
+
+          {/* Marketing SMS */}
+          <label className="flex items-start cursor-pointer">
+            <input
+              type="checkbox"
+              {...register('smsOptInMarketing')}
+              className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+            />
+            <span className="ml-3 text-sm text-neutral-700">
+              I agree to receive automated marketing text messages from AskChad at the phone number provided.
+              Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
+              <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
+                Terms
+              </Link>
+              {' '}&{' '}
+              <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
+                Privacy Policy
+              </Link>
+              {' '}apply.
+            </span>
+          </label>
+
+          {/* Transactional SMS */}
+          <label className="flex items-start cursor-pointer">
+            <input
+              type="checkbox"
+              {...register('smsOptInTransactional')}
+              className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+            />
+            <span className="ml-3 text-sm text-neutral-700">
+              I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided.
+              Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
+              <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
+                Terms
+              </Link>
+              {' '}&{' '}
+              <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
+                Privacy Policy
+              </Link>
+              {' '}apply.
+            </span>
+          </label>
+
+          <p className="text-xs text-neutral-500 pt-2 border-t border-neutral-200">
+            Optional. Consent is not a condition of purchase or use of our calculator.
+          </p>
         </div>
-
-        {/* Marketing SMS */}
-        <label className="flex items-start cursor-pointer">
-          <input
-            type="checkbox"
-            {...register('smsOptInMarketing')}
-            className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
-          />
-          <span className="ml-3 text-sm text-neutral-700">
-            I agree to receive automated marketing text messages from AskChad at the phone number provided.
-            Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
-            <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
-              Terms
-            </Link>
-            {' '}&{' '}
-            <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
-              Privacy Policy
-            </Link>
-            {' '}apply.
-          </span>
-        </label>
-
-        {/* Transactional SMS */}
-        <label className="flex items-start cursor-pointer">
-          <input
-            type="checkbox"
-            {...register('smsOptInTransactional')}
-            className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
-          />
-          <span className="ml-3 text-sm text-neutral-700">
-            I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided.
-            Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
-            <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
-              Terms
-            </Link>
-            {' '}&{' '}
-            <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
-              Privacy Policy
-            </Link>
-            {' '}apply.
-          </span>
-        </label>
-
-        <p className="text-xs text-neutral-500 pt-2 border-t border-neutral-200">
-          Optional. Consent is not a condition of purchase or use of our calculator.
-        </p>
-      </div>
+      )}
 
       {/* Submit Button */}
       <button

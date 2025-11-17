@@ -43,6 +43,7 @@ interface Brand {
   support_email: string | null
   privacy_policy_url: string | null
   terms_of_service_url: string | null
+  a2p_compliance_enabled: boolean
   domain_verified?: boolean
   domain_verification_checked_at?: string
   dns_records?: any
@@ -96,6 +97,7 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
     domain: '',
     subdomain: '',
     is_active: true,
+    a2p_compliance_enabled: true,
     color_primary: '#0066CC',
     color_secondary: '#7C3AED',
     color_accent: '#F59E0B',
@@ -310,6 +312,28 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
+              </div>
+            </div>
+
+            {/* A2P Compliance Toggle */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  id="a2p_compliance"
+                  checked={editingBrand.a2p_compliance_enabled}
+                  onChange={(e) => handleChange('a2p_compliance_enabled', e.target.checked)}
+                  className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+                />
+                <div className="flex-1">
+                  <label htmlFor="a2p_compliance" className="block text-sm font-semibold text-neutral-900 cursor-pointer">
+                    Enable A2P 10DLC Compliance Mode
+                  </label>
+                  <p className="text-xs text-neutral-600 mt-1">
+                    <strong>When ON:</strong> Shows SMS opt-in checkboxes (Marketing & Transactional). Phone and Email are optional fields.<br />
+                    <strong>When OFF:</strong> No SMS checkboxes shown. Phone and Email are required fields.
+                  </p>
+                </div>
               </div>
             </div>
 

@@ -21,11 +21,6 @@ export default function HeroSection() {
           />
         )}
         <div className="flex flex-col">
-          <div className="mb-3">
-            <span className="text-brand-primary font-semibold text-lg tracking-wide uppercase">
-              AskChad
-            </span>
-          </div>
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight text-left mb-4">
             {brand.hero_title}
           </h1>
