@@ -15,6 +15,7 @@ const contactSchema = z.object({
   phone: z.string().optional(),
   companyName: z.string().min(1, 'Company name is required').max(255),
   websiteUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  smsOptIn: z.boolean().optional(),
 })
 
 type ContactFormData = z.infer<typeof contactSchema>
@@ -196,6 +197,32 @@ export default function ContactForm() {
         {errors.websiteUrl && (
           <p className="mt-1 text-sm text-danger">{errors.websiteUrl.message}</p>
         )}
+      </div>
+
+      {/* SMS Opt-In (A2P 10DLC Compliant) */}
+      <div className="border border-neutral-200 rounded-lg p-4 bg-neutral-50">
+        <label className="flex items-start cursor-pointer">
+          <input
+            type="checkbox"
+            {...register('smsOptIn')}
+            className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+          />
+          <span className="ml-3 text-sm text-neutral-700">
+            I agree to receive text messages from ROI Calculator. Message frequency varies.
+            Message and data rates may apply. Text STOP to cancel, HELP for help.{' '}
+            <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Terms
+            </Link>
+            {' '}&{' '}
+            <Link href="/privacy" target="_blank" className="text-brand-primary hover:underline font-medium">
+              Privacy Policy
+            </Link>
+            {' '}apply.
+          </span>
+        </label>
+        <p className="mt-2 ml-7 text-xs text-neutral-500">
+          Optional. Consent is not a condition of purchase or use of our calculator.
+        </p>
       </div>
 
       {/* Submit Button */}

@@ -316,6 +316,11 @@ export class GHLClient {
         salesIncrease: 'roi_sales_increase',
         revenueIncrease: 'roi_revenue_increase',
         cpaImprovement: 'roi_cpa_improvement',
+        // SMS Consent fields (A2P 10DLC compliance)
+        smsOptIn: 'sms_opt_in',
+        smsConsentText: 'sms_consent_text',
+        smsOptedInAt: 'sms_opted_in_at',
+        smsConsentIp: 'sms_consent_ip',
       }
     }
 
@@ -372,6 +377,11 @@ export class GHLClient {
       '{{revenueIncrease}}': leadData.revenueIncrease ? `$${leadData.revenueIncrease.toLocaleString()}` : '',
       '{{cpaImprovement}}': leadData.cpaImprovement ? `$${leadData.cpaImprovement}` : '',
       '{{date}}': new Date().toLocaleString(),
+      // SMS Consent placeholders (A2P 10DLC compliance)
+      '{{smsOptIn}}': leadData.smsOptIn ? 'Yes' : 'No',
+      '{{smsConsentText}}': leadData.smsConsentText || '',
+      '{{smsOptedInAt}}': leadData.smsOptedInAt || '',
+      '{{smsConsentIp}}': leadData.smsConsentIp || '',
     }
 
     for (const [placeholder, value] of Object.entries(replacements)) {
@@ -404,6 +414,11 @@ export class GHLClient {
     salesIncrease?: number
     revenueIncrease?: number
     cpaImprovement?: number
+    // SMS Consent fields (A2P 10DLC compliance)
+    smsOptIn?: boolean
+    smsConsentText?: string
+    smsOptedInAt?: string
+    smsConsentIp?: string
   }): Promise<any> {
     // Get field mappings and notes config
     const fieldMappings = await this.getFieldMappings()
@@ -430,6 +445,11 @@ export class GHLClient {
       salesIncrease: leadData.salesIncrease,
       revenueIncrease: leadData.revenueIncrease,
       cpaImprovement: leadData.cpaImprovement,
+      // SMS Consent fields
+      smsOptIn: leadData.smsOptIn,
+      smsConsentText: leadData.smsConsentText,
+      smsOptedInAt: leadData.smsOptedInAt,
+      smsConsentIp: leadData.smsConsentIp,
     }
 
     // Map data to custom fields

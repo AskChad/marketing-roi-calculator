@@ -286,6 +286,7 @@ See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions.
 | [DUAL_TIMEFRAME_FEATURE.md](./DUAL_TIMEFRAME_FEATURE.md) | Weekly/monthly conversion |
 | [UI_WIREFRAMES.md](./UI_WIREFRAMES.md) | UI/UX designs |
 | [PROJECT_PLAN.md](./PROJECT_PLAN.md) | Original implementation plan |
+| [SMS_COMPLIANCE_GUIDE.md](./SMS_COMPLIANCE_GUIDE.md) | A2P 10DLC & TCPA compliance for SMS opt-in |
 
 ---
 

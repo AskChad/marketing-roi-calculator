@@ -14,6 +14,7 @@ const leadCaptureSchema = z.object({
   phone: z.string().optional(),
   companyName: z.string().min(1).max(255),
   websiteUrl: z.string().url().optional().or(z.literal('')),
+  smsOptIn: z.boolean().optional(),
   // Optional ROI data for GHL sync
   roiData: z.object({
     currentLeads: z.number().optional(),
@@ -74,6 +75,20 @@ export async function POST(request: NextRequest) {
     const userAgent = getUserAgent(request)
     const referrer = getReferrer(request)
 
+    // Prepare SMS consent data if user opted in (A2P 10DLC compliance)
+    const smsConsentData: any = {}
+    if (validatedData.smsOptIn === true) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.roicalculator.app'
+      smsConsentData.sms_opt_in = true
+      smsConsentData.sms_opted_in_at = new Date().toISOString()
+      smsConsentData.sms_consent_ip = ipAddress
+      smsConsentData.sms_consent_user_agent = userAgent
+      smsConsentData.sms_consent_text = 'I agree to receive text messages from ROI Calculator. Message frequency varies. Message and data rates may apply. Text STOP to cancel, HELP for help. Terms & Privacy Policy apply.'
+      smsConsentData.sms_terms_url = `${appUrl}/sms-terms`
+      smsConsentData.sms_privacy_url = `${appUrl}/privacy`
+      console.log('[Lead Capture] User opted in to SMS, storing consent data')
+    }
+
     // Insert lead capture without geolocation (will be added in background)
     const insertData: any = {
       first_name: validatedData.firstName,
@@ -86,6 +101,7 @@ export async function POST(request: NextRequest) {
       tracking_id: trackingId,
       brand_id: brand.id,
       visit_count: 1,
+      ...smsConsentData, // Include SMS consent fields if user opted in
     }
 
     console.log('[Lead Capture] Attempting insert with brand_id:', brand.id, 'tracking_id:', trackingId)
@@ -173,7 +189,17 @@ export async function POST(request: NextRequest) {
         const locationId = settingsMap.ghl_location_id
 
         if (isConnected && locationId) {
-          // Sync to GHL with ROI data if provided
+          // Prepare SMS consent data for GHL sync (A2P 10DLC compliance)
+          const smsDataForGHL: any = {}
+          if (validatedData.smsOptIn === true) {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.roicalculator.app'
+            smsDataForGHL.smsOptIn = true
+            smsDataForGHL.smsConsentText = 'I agree to receive text messages from ROI Calculator. Message frequency varies. Message and data rates may apply. Text STOP to cancel, HELP for help. Terms & Privacy Policy apply.'
+            smsDataForGHL.smsOptedInAt = new Date().toISOString()
+            smsDataForGHL.smsConsentIp = ipAddress
+          }
+
+          // Sync to GHL with ROI data and SMS consent data
           await ghlClient.syncROIData(locationId, {
             email: validatedData.email,
             firstName: validatedData.firstName,
@@ -181,9 +207,10 @@ export async function POST(request: NextRequest) {
             phone: validatedData.phone,
             companyName: validatedData.companyName,
             ...(validatedData.roiData || {}),
+            ...smsDataForGHL, // Include SMS consent data
           })
 
-          console.log('[Background] Successfully synced lead to GoHighLevel:', validatedData.email)
+          console.log('[Background] Successfully synced lead to GoHighLevel:', validatedData.email, validatedData.smsOptIn ? '(with SMS consent)' : '')
         } else {
           console.log('[Background] GHL not connected, skipping sync')
         }
