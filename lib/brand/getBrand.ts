@@ -77,6 +77,7 @@ const getBrandFromRequestUncached = async (): Promise<Brand> => {
         privacy_policy_url: null,
         terms_of_service_url: null,
         a2p_compliance_enabled: true,
+        legal_company_name: 'AskChad',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       } as Brand

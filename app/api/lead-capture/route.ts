@@ -80,13 +80,14 @@ export async function POST(request: NextRequest) {
     const smsConsentData: any = {}
     const timestamp = new Date().toISOString()
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.roicalculator.app'
+    const legalCompanyName = brand.legal_company_name || 'AskChad'
 
     // Marketing SMS consent
     if (validatedData.smsOptInMarketing === true) {
       smsConsentData.sms_opt_in_marketing = true
       smsConsentData.sms_marketing_opted_in_at = timestamp
       smsConsentData.sms_marketing_consent_ip = ipAddress
-      smsConsentData.sms_marketing_consent_text = 'I agree to receive automated marketing text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+      smsConsentData.sms_marketing_consent_text = `I agree to receive automated marketing text messages from ${legalCompanyName} at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.`
       console.log('[Lead Capture] User opted in to MARKETING SMS')
     }
 
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       smsConsentData.sms_opt_in_transactional = true
       smsConsentData.sms_transactional_opted_in_at = timestamp
       smsConsentData.sms_transactional_consent_ip = ipAddress
-      smsConsentData.sms_transactional_consent_text = 'I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+      smsConsentData.sms_transactional_consent_text = `I agree to receive automated transactional and service-based text messages from ${legalCompanyName} at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.`
       console.log('[Lead Capture] User opted in to TRANSACTIONAL SMS')
     }
 
@@ -215,7 +216,7 @@ export async function POST(request: NextRequest) {
           // Marketing SMS
           if (validatedData.smsOptInMarketing === true) {
             smsDataForGHL.smsOptInMarketing = true
-            smsDataForGHL.smsMarketingConsentText = 'I agree to receive automated marketing text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+            smsDataForGHL.smsMarketingConsentText = `I agree to receive automated marketing text messages from ${legalCompanyName} at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.`
             smsDataForGHL.smsMarketingOptedInAt = timestamp
             smsDataForGHL.smsMarketingConsentIp = ipAddress
           }
@@ -223,7 +224,7 @@ export async function POST(request: NextRequest) {
           // Transactional SMS
           if (validatedData.smsOptInTransactional === true) {
             smsDataForGHL.smsOptInTransactional = true
-            smsDataForGHL.smsTransactionalConsentText = 'I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.'
+            smsDataForGHL.smsTransactionalConsentText = `I agree to receive automated transactional and service-based text messages from ${legalCompanyName} at the phone number provided. Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.`
             smsDataForGHL.smsTransactionalOptedInAt = timestamp
             smsDataForGHL.smsTransactionalConsentIp = ipAddress
           }

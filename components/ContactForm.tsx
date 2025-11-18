@@ -264,7 +264,7 @@ export default function ContactForm() {
             className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
           />
           <span className="ml-3 text-sm text-neutral-700">
-            I agree to receive automated marketing text messages from AskChad at the phone number provided.
+            I agree to receive automated marketing text messages from {brand.legal_company_name || 'AskChad'} at the phone number provided.
             Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
             <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
               Terms
@@ -288,7 +288,7 @@ export default function ContactForm() {
             className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
           />
           <span className="ml-3 text-sm text-neutral-700">
-            I agree to receive automated transactional and service-based text messages from AskChad at the phone number provided.
+            I agree to receive automated transactional and service-based text messages from {brand.legal_company_name || 'AskChad'} at the phone number provided.
             Message frequency varies. Message & data rates may apply. Reply HELP for help, STOP to end.{' '}
             <Link href="/sms-terms" target="_blank" className="text-brand-primary hover:underline font-medium">
               Terms

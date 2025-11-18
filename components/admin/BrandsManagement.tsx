@@ -44,6 +44,7 @@ interface Brand {
   privacy_policy_url: string | null
   terms_of_service_url: string | null
   a2p_compliance_enabled: boolean
+  legal_company_name: string | null
   domain_verified?: boolean
   domain_verification_checked_at?: string
   dns_records?: any
@@ -315,24 +316,48 @@ export default function BrandsManagement({ initialBrands }: BrandsManagementProp
               </div>
             </div>
 
-            {/* A2P Compliance Toggle */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  id="a2p_compliance"
-                  checked={editingBrand.a2p_compliance_enabled}
-                  onChange={(e) => handleChange('a2p_compliance_enabled', e.target.checked)}
-                  className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
-                />
-                <div className="flex-1">
-                  <label htmlFor="a2p_compliance" className="block text-sm font-semibold text-neutral-900 cursor-pointer">
-                    Enable A2P 10DLC Compliance Mode
+            {/* A2P 10DLC Compliance Settings */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h4 className="font-semibold text-neutral-900 mb-4 text-base">
+                A2P 10DLC Compliance Settings
+              </h4>
+
+              <div className="space-y-4">
+                {/* Legal Company Name */}
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Legal Company Name *
                   </label>
+                  <input
+                    type="text"
+                    value={editingBrand.legal_company_name || ''}
+                    onChange={(e) => handleChange('legal_company_name', e.target.value)}
+                    placeholder="AskChad"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-primary"
+                  />
                   <p className="text-xs text-neutral-600 mt-1">
-                    <strong>When ON:</strong> SMS checkboxes unchecked & optional. Phone and Email optional.<br />
-                    <strong>When OFF:</strong> SMS checkboxes pre-checked & required. Phone and Email required.
+                    Used in Privacy Policy, Terms of Service, and SMS consent forms (e.g., "I agree to receive... from [Legal Company Name]")
                   </p>
+                </div>
+
+                {/* A2P Compliance Toggle */}
+                <div className="flex items-start space-x-3 pt-2 border-t border-blue-200">
+                  <input
+                    type="checkbox"
+                    id="a2p_compliance"
+                    checked={editingBrand.a2p_compliance_enabled}
+                    onChange={(e) => handleChange('a2p_compliance_enabled', e.target.checked)}
+                    className="mt-1 h-4 w-4 text-brand-primary border-neutral-300 rounded focus:ring-2 focus:ring-brand-primary"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="a2p_compliance" className="block text-sm font-semibold text-neutral-900 cursor-pointer">
+                      Enable A2P 10DLC Compliance Mode
+                    </label>
+                    <p className="text-xs text-neutral-600 mt-1">
+                      <strong>When ON:</strong> SMS checkboxes unchecked & optional. Phone and Email optional.<br />
+                      <strong>When OFF:</strong> SMS checkboxes pre-checked & required. Phone and Email required.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

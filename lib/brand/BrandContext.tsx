@@ -44,6 +44,7 @@ export interface Brand {
 
   // A2P 10DLC Compliance
   a2p_compliance_enabled: boolean
+  legal_company_name: string | null
 
   // Domain verification
   domain_verified?: boolean
